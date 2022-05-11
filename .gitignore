@@ -9,3 +9,5 @@ node_modules/
 
 # Local folder
 local/
+
+.DS_Store
