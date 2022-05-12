@@ -9,23 +9,36 @@ html
     h3 Share to reels
     .canvas
       - let pagesArr = pages ?? [];
-
-      if(!uploaded)
-        if (pagesArr.length > 0)
-          form(action='/uploadReels', method='POST', enctype="multipart/form-data")
-            b Select a Page to upload video to
-            div(class='radio-group')
-              each page, index in pagesArr
-                div(class='radio-child')
-                  input(type="radio" id=`page-${index}` name="pageID" value=page.id)
-                  label(for=`page-${index}`) Page: #{page.name} - #{page.id}
-            input(type='file', name='videoFile')
-            input(type='submit', name='uploadReels', value='Upload Video')
-      else
-        text Video Uploaded Successfully ! Now you can publish to Reels
-        button(onclick="location.href='/publishReels'") Publish
-        text Uploaded
-
-        text #{published}
-        if(published)
-          text Video Published Successfully !!
+      if (pagesArr.length > 0)
+        form(action='/uploadReels', method='POST', enctype="multipart/form-data")
+          b Select a Page to upload video to
+          div(class='radio-group')
+            each page, index in pagesArr
+              div(class='radio-child')
+                input(type="radio" id=`page-${index}` name="pageID" value=page.id)
+                label(for=`page-${index}`) Page: #{page.name} - #{page.id}
+          input(type='file', name='videoFile')
+          input(type='submit', name='uploadReels', value='Upload Video')
+      if(uploaded)
+        if(uploadSuccess)
+          .alert
+            span.closebtn(onclick="this.parentElement.style.display='none';") &times;
+            |   Video ID# #{videoId} Uploaded Successfully !
+          button(onclick="location.href='/publishReels'") Publish
+          button(onclick="location.href='/logout'") Log Out
+        else
+          .alert-error
+            span.closebtn(onclick="this.parentElement.style.display='none';") &times;
+            |   Video ID# #{videoId} Upload Failed !
+            button(onclick="location.href='/logout'") Log Out
+      if(published)
+        if(publishSuccess)
+          .alert
+            span.closebtn(onclick="this.parentElement.style.display='none';") &times;
+            |   Video ID# #{videoId} Published Successfully as Reels!
+          button(onclick="location.href='/logout'") Log Out
+        else
+          .alert-error
+            span.closebtn(onclick="this.parentElement.style.display='none';") &times;
+            |   Video ID# #{videoId} Publish Failed !
+          button(onclick="location.href='/logout'") Log Out

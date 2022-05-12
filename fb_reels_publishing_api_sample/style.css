@@ -58,3 +58,32 @@ label {
 .radio-child {
 	text-align: left;
 }
+
+.alert {
+	margin: 30px 10px;
+	padding: 10px;
+	background-color: #3b9610;
+	color: white;
+}
+
+.alert-error {
+	margin: 30px 10px;
+	padding: 10px;
+	background-color: #a51414;
+	color: white;
+}
+
+.closebtn {
+	margin-left: 15px;
+	color: white;
+	font-weight: bold;
+	float: right;
+	font-size: 22px;
+	line-height: 20px;
+	cursor: pointer;
+	transition: 0.3s;
+}
+
+.closebtn:hover {
+	color: black;
+}

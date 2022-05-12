@@ -10,3 +10,7 @@ html
     .button-group
       button(onclick="location.href='/login'") Log In with Facebook
       button(onclick="location.href='/logout'") Log Out
+    if(error)
+        .alert-error
+          span.closebtn(onclick="this.parentElement.style.display='none';") &times;
+          |   Error Occured - #{error}!
