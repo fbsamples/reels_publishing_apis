@@ -23,7 +23,7 @@ For simplicity, this sample guide assumes that you save every file at the root l
 ## Running the project
 
 * Run `npm install` in your terminal
-* Add your environment variables in a `.env` file in root location
+* Add your environment variables in the `.env` file at root location
 ```bash
 HOST=localhost
 APP_ID=YOUR_APP_ID
@@ -35,12 +35,11 @@ PORT=8000
 * Create an OpenSSL Cert
     * To create an OpenSSL Cert for you local development envirnment, first, install mkcert if it's not already installed on your local machine using `brew install mkcert`
     * `mkcert localhost` - This will create a localhost pem file
-    * You will see localhost.pem and localhost-key.pem files generated.
+    * You will see `localhost.pem` and `localhost-key.pem `files generated.
 
 * Running the Sample App
     * `npm start`
     * Once the sample app starts running, go to https://localhost:8000 to test the workflow.
-
 
 ## License
 Reels Publishing APIs is Meta Platform Policy licensed, as found in the LICENSE file.
