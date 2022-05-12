@@ -23,7 +23,7 @@ For simplicity, this sample guide assumes that you save every file at the root l
 ## Running the project
 
 * Run `npm install` in your terminal
-* Add your environment variables
+* Add your environment variables in a `.env` file in root location
 ```bash
 HOST=localhost
 APP_ID=YOUR_APP_ID

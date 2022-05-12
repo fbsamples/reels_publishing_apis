@@ -8,6 +8,8 @@ const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
 
+require('dotenv').config();
+
 // Read variables from environment
 const { HOST, PORT, REDIRECT_URI, APP_ID, API_SECRET } = process.env;
 
