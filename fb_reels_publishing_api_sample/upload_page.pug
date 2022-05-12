@@ -19,26 +19,15 @@ html
                 label(for=`page-${index}`) Page: #{page.name} - #{page.id}
           input(type='file', name='videoFile')
           input(type='submit', name='uploadReels', value='Upload Video')
-      if(uploaded)
-        if(uploadSuccess)
-          .alert
-            span.closebtn(onclick="this.parentElement.style.display='none';") &times;
-            |   Video ID# #{videoId} Uploaded Successfully !
+      if(success == true)
+        .alert
+          span.closebtn(onclick="this.parentElement.style.display='none';") &times;
+          |   #{message}
+        if(next == "publish")
           button(onclick="location.href='/publishReels'") Publish
-          button(onclick="location.href='/logout'") Log Out
-        else
-          .alert-error
-            span.closebtn(onclick="this.parentElement.style.display='none';") &times;
-            |   Video ID# #{videoId} Upload Failed !
-            button(onclick="location.href='/logout'") Log Out
-      if(published)
-        if(publishSuccess)
-          .alert
-            span.closebtn(onclick="this.parentElement.style.display='none';") &times;
-            |   Video ID# #{videoId} Published Successfully as Reels!
-          button(onclick="location.href='/logout'") Log Out
-        else
-          .alert-error
-            span.closebtn(onclick="this.parentElement.style.display='none';") &times;
-            |   Video ID# #{videoId} Publish Failed !
-          button(onclick="location.href='/logout'") Log Out
+        button(onclick="location.href='/logout'") Log Out
+      else if(success == false)
+        .alert-error
+          span.closebtn(onclick="this.parentElement.style.display='none';") &times;
+          |   #{message}
+        button(onclick="location.href='/logout'") Log Out

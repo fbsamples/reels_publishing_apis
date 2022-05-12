@@ -15,7 +15,6 @@
     "dotenv": "^16.0.1",
     "express": "^4.17.3",
     "express-session": "^1.17.2",
-    "form-data": "^4.0.0",
     "fs": "^0.0.1-security",
     "multer": "^1.4.4",
     "path": "^0.12.7",

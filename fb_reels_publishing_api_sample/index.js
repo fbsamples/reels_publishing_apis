@@ -8,7 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
 
-// require('dotenv').config();
+require('dotenv').config();
 
 // Read variables from environment
 const { HOST, PORT, REDIRECT_URI, APP_ID, API_SECRET } = process.env;
@@ -126,15 +126,23 @@ app.post('/uploadReels', videoUpload.single('videoFile'), async function(req, re
                     "X-Entity-Length": size
                 },
             });
+            const isUploadSuccessfull = uploadBinaryResponse.data.success;
 
             // add publish reel url to the session
             req.session.publishReelUrl = `https://graph.facebook.com/v13.0/${selectedPageID}/video_reels?upload_phase=finish&video_id=${videoId}&access_token=${pageToken}&video_state=PUBLISHED`;
             req.session.videoId = videoId;
-            res.render("upload_page", {
-                uploaded: true,
-                uploadSuccess: uploadBinaryResponse.data.success,
-                videoId
-            });
+            if(isUploadSuccessfull) {
+                res.render("upload_page", {
+                    success: true,
+                    next: "publish",
+                    message: `Video ID# ${videoId} Uploaded Successfully !`
+                });
+            } else {
+                res.render("upload_page", {
+                    success: false,
+                    message: `Video ID# ${videoId} Upload Failed !`
+                });
+            }
         } catch(error) {
             res.render('index', {'error':`There was an error with the request: ${error}`});
         }
@@ -146,11 +154,19 @@ app.get('/publishReels', async function(req, res) {
     const { publishReelUrl, videoId } = req.session;
     try {
         const publishResponse = await axios.post(publishReelUrl);
-        res.render('upload_page', {
-            published: true,
-            publishSuccess: publishResponse.data.success,
-            videoId
-        });
+        const isPublishSuccessfull = publishResponse.data.success;
+
+        if(isPublishSuccessfull) {
+            res.render("upload_page", {
+                success: true,
+                message: `Video ID# ${videoId} Published Successfully !`
+            });
+        } else {
+            res.render("upload_page", {
+                success: false,
+                message: `Video ID# ${videoId} Publish Failed !`
+            });
+        }
     } catch(error) {
         res.render('index', {'error':`There was an error with the request: ${error}`});
     }
@@ -161,11 +177,11 @@ app.get('/logout', function(req, res){
     if (req.session) {
         req.session.destroy(err => {
             if (err){
-                res.render('index', {'response': 'Unable to log out'});
+                res.render('index', {'error': 'Unable to log out'});
             } else {
                 res.render('index', {'response': 'Logout successful!'});
             }
-    });
+        });
     } else {
         res.render('index', {'response': 'Token not stored in session'});
     }
