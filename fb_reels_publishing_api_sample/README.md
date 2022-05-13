@@ -33,7 +33,7 @@ SESSION_SECRET=RANDOM_SESSION_SECRET_STRING
 PORT=8000
 ```
 * Create an OpenSSL Cert
-    * To create an OpenSSL Cert for you local development envirnment, first, install mkcert if it's not already installed on your local machine using `brew install mkcert`
+    * To create an OpenSSL Cert for you local development environment, first, install mkcert if it's not already installed on your local machine using `brew install mkcert`
     * `mkcert localhost` - This will create a localhost pem file
     * You will see `localhost.pem` and `localhost-key.pem `files generated.
 

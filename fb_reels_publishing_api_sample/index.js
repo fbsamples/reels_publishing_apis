@@ -35,7 +35,7 @@ const videoUpload = multer({
     fileFilter(req, file, cb) {
         // upload only mp4 and mkv format
         if (!file.originalname.match(/\.(mp4|MPEG-4|mkv)$/)) {
-            return cb(new Error('Please upload a video'))
+            return cb(new Error('Please upload a video that matches the format'))
         }
         cb(undefined, true);
    }
@@ -47,7 +47,7 @@ app.set('view engine', 'pug')
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(session({
-	secret: process.env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: true,
     cookie: {
@@ -61,21 +61,20 @@ app.get('/', (req, res) => {
 
 // Login route using FB OAuth
 app.get('/login', function(req, res){
-	res.redirect(`https://www.facebook.com/dialog/oauth?app_id=${APP_ID}&scope=${STRINGIFIED_SCOPES}&client_id=${APP_ID}&redirect_uri=${REDIRECT_URI}&response_type=code`);
+    res.redirect(`https://www.facebook.com/dialog/oauth?app_id=${APP_ID}&scope=${STRINGIFIED_SCOPES}&client_id=${APP_ID}&redirect_uri=${REDIRECT_URI}&response_type=code`);
 });
 
 // Callback route for handling FB OAuth user token
 // And reroute to '/pages'
 app.get('/callback', async function(req, res){
-	const code = req.query.code;
-	const uri = `https://graph.facebook.com/oauth/access_token?client_id=${APP_ID}&redirect_uri=${REDIRECT_URI}&client_secret=${API_SECRET}&code=${code}`;
-
+    const code = req.query.code;
+    const uri = `https://graph.facebook.com/oauth/access_token?client_id=${APP_ID}&redirect_uri=${REDIRECT_URI}&client_secret=${API_SECRET}&code=${code}`;
     try {
         const response = await axios.post(uri);
         req.session.userToken = response.data.access_token;
-		res.redirect('/pages');
+        res.redirect('/pages');
     } catch(err) {
-        res.render('index', {'response':`There was an error with the request: ${error}`});
+        res.render('index', {'error':`There was an error with the request: ${error}`});
     }
 });
 
@@ -91,23 +90,23 @@ app.get('/pages', async function(req, res){
                 pages: req.session.pageData
             });
         } catch(e) {
-            res.render('index', {'response':`There was an error with the request: ${error}`});
+            res.render('index', {'error':`There was an error with the request: ${error}`});
         }
 	} else {
-		res.render('index', {'response':'You need to log in first'});
+		res.render('index', {'error':'You need to log in first'});
 	}
 });
 
 // Upload Start route to initiate upload
 app.post('/uploadReels', videoUpload.single('videoFile'), async function(req, res){
-	const selectedPageID = req.body.pageID;
-	const pageToken = req.session.pageData.filter(pd => pd.id === selectedPageID)[0].access_token;
+    const selectedPageID = req.body.pageID;
+    const pageToken = req.session.pageData.filter(pd => pd.id === selectedPageID)[0].access_token;
     const filePath = `${__dirname}/${req.file.path}`;
     const data = fs.readFileSync(filePath);
     const size = req.file.size;
 
     if (selectedPageID === '') {
-        res.render('index', {'response':'You need to select a page'});
+        res.render('index', {'error':'You need to select a page'});
     } else {
         try {
             // generate video id
@@ -188,9 +187,9 @@ app.get('/logout', function(req, res){
 });
 
 https.createServer({
-	key: fs.readFileSync(path.join(__dirname,'./localhost-key.pem')),
-	cert: fs.readFileSync(path.join(__dirname, './localhost.pem'))
+  key: fs.readFileSync(path.join(__dirname,'./localhost-key.pem')),
+  cert: fs.readFileSync(path.join(__dirname, './localhost.pem'))
 }, app).listen(PORT, HOST, (err) => {
-	if (err) console.log(`Error: ${err}`);
-	console.log(`listening on port ${PORT}!`);
+  if (err) console.log(`Error: ${err}`);
+  console.log(`listening on port ${PORT}!`);
 });
