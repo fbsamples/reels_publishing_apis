@@ -80,21 +80,21 @@ app.get('/callback', async function(req, res){
 
 // Pages route to retrieve FB OAuth page tokens
 app.get('/pages', async function(req, res){
-	const uri = `https://graph.facebook.com/v13.0/me/accounts?access_token=${req.session.userToken}`;
-	if (req.session.userToken) {
+    const uri = `https://graph.facebook.com/v13.0/me/accounts?access_token=${req.session.userToken}`;
+    if (req.session.userToken) {
         try {
             const response = await axios.get(uri);
             req.session.pageData = response.data.data;
             res.render('upload_page', {
-                uploaded: false,
+            uploaded: false,
                 pages: req.session.pageData
             });
         } catch(e) {
             res.render('index', {'error':`There was an error with the request: ${error}`});
         }
-	} else {
-		res.render('index', {'error':'You need to log in first'});
-	}
+    } else {
+        res.render('index', {'error':'You need to log in first'});
+    }
 });
 
 // Upload Start route to initiate upload
