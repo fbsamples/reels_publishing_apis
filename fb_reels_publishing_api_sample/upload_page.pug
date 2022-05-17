@@ -19,14 +19,23 @@ html
                 label(for=`page-${index}`) Page: #{page.name} - #{page.id}
           input(type='file', name='videoFile')
           input(type='submit', name='uploadReels', value='Upload Video')
-      if(success == true)
+      if(uploaded)
         .alert
           span.closebtn(onclick="this.parentElement.style.display='none';") &times;
           |   #{message}
         if(next == "publish")
           button(onclick="location.href='/publishReels'") Publish
         button(onclick="location.href='/logout'") Log Out
-      else if(success == false)
+      else if(!uploaded && error)
+        .alert-error
+          span.closebtn(onclick="this.parentElement.style.display='none';") &times;
+          |   Error Occured in Upload #{message}
+      else if(published)
+        .alert
+          span.closebtn(onclick="this.parentElement.style.display='none';") &times;
+          |   #{message}
+        button(onclick="location.href='/logout'") Log Out
+      else if(!published && error)
         .alert-error
           span.closebtn(onclick="this.parentElement.style.display='none';") &times;
           |   #{message}

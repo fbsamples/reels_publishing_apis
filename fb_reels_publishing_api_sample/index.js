@@ -34,8 +34,8 @@ const videoUpload = multer({
     },
     fileFilter(req, file, cb) {
         // upload only mp4 and mkv format
-        if (!file.originalname.match(/\.(mp4|MPEG-4|mkv)$/)) {
-            return cb(new Error('Please upload a video that matches the format'))
+        if (!file.originalname.match(/\.(3g2|3gp|3gpp|asf|avi|dat|divx|dv|f4v|flv|m2ts|m4v|mkv|mod|mov|mp4|mpe|mpeg|mpeg4|mpg|mts|nsv|ogm|ogv|qt|tod|ts|vob|wmv)$/)) {
+            return cb(new Error('Please upload a video that matches the format'));
         }
         cb(undefined, true);
    }
@@ -86,7 +86,8 @@ app.get('/pages', async function(req, res){
             const response = await axios.get(uri);
             req.session.pageData = response.data.data;
             res.render('upload_page', {
-            uploaded: false,
+                uploaded: false,
+                error: false,
                 pages: req.session.pageData
             });
         } catch(e) {
@@ -98,54 +99,65 @@ app.get('/pages', async function(req, res){
 });
 
 // Upload Start route to initiate upload
-app.post('/uploadReels', videoUpload.single('videoFile'), async function(req, res){
-    const selectedPageID = req.body.pageID;
-    const pageToken = req.session.pageData.filter(pd => pd.id === selectedPageID)[0].access_token;
-    const filePath = `${__dirname}/${req.file.path}`;
-    const data = fs.readFileSync(filePath);
-    const size = req.file.size;
-
-    if (selectedPageID === '') {
-        res.render('index', {'error':'You need to select a page'});
-    } else {
-        try {
-            // generate video id
-            const uploadStartUri = `https://graph.facebook.com/v13.0/${selectedPageID}/video_reels?upload_phase=start&access_token=${pageToken}`;
-            const initiateUploadResponse = await axios.post(uploadStartUri);
-            const videoId = initiateUploadResponse.data.video_id;
-
-            // upload video
-            const uploadBinaryUri = `https://rupload.facebook.com/video-upload/v13.0/${videoId}`;
-            const uploadBinaryResponse = await axios.post(uploadBinaryUri, data, {
-                headers: {
-                    Authorization: `OAuth ${pageToken}`,
-                    offset: 0,
-                    "X-Entity-Name": "video.mp4",
-                    "X-Entity-Type": "video/mp4",
-                    "X-Entity-Length": size
-                },
+app.post('/uploadReels', function(req, res) {
+    const uploadSingleVideo = videoUpload.single('videoFile');
+    uploadSingleVideo(req, res, async function(err) {
+        const selectedPageID = req.body.pageID;
+        const pageToken = req.session.pageData.filter(pd => pd.id === selectedPageID)[0].access_token;
+        if(err) {
+            res.render("upload_page", {
+                uploaded: false,
+                error: true,
+                pages: req.session.pageData,
+                message: err
             });
-            const isUploadSuccessfull = uploadBinaryResponse.data.success;
-
-            // add publish reel url to the session
-            req.session.publishReelUrl = `https://graph.facebook.com/v13.0/${selectedPageID}/video_reels?upload_phase=finish&video_id=${videoId}&access_token=${pageToken}&video_state=PUBLISHED`;
-            req.session.videoId = videoId;
-            if(isUploadSuccessfull) {
-                res.render("upload_page", {
-                    success: true,
-                    next: "publish",
-                    message: `Video ID# ${videoId} Uploaded Successfully !`
-                });
+        } else {
+            const filePath = `${__dirname}/${req.file.path}`;
+            const data = fs.readFileSync(filePath);
+            const size = req.file.size;
+            if (selectedPageID === '') {
+                res.render('upload_page', {'error':'You need to select a page'});
             } else {
-                res.render("upload_page", {
-                    success: false,
-                    message: `Video ID# ${videoId} Upload Failed !`
-                });
+                try {
+                    // generate video id
+                    const uploadStartUri = `https://graph.facebook.com/v13.0/${selectedPageID}/video_reels?upload_phase=start&access_token=${pageToken}`;
+                    const initiateUploadResponse = await axios.post(uploadStartUri);
+                    const videoId = initiateUploadResponse.data.video_id;
+
+                    // upload video
+                    const uploadBinaryUri = `https://rupload.facebook.com/video-upload/v13.0/${videoId}`;
+                    const uploadBinaryResponse = await axios.post(uploadBinaryUri, data, {
+                        headers: {
+                            Authorization: `OAuth ${pageToken}`,
+                            offset: 0,
+                            "X-Entity-Name": "video.mp4",
+                            "X-Entity-Type": "video/mp4",
+                            "X-Entity-Length": size
+                        },
+                    });
+                    const isUploadSuccessfull = uploadBinaryResponse.data.success;
+
+                    // add publish reel url to the session
+                    req.session.publishReelUrl = `https://graph.facebook.com/v13.0/${selectedPageID}/video_reels?upload_phase=finish&video_id=${videoId}&access_token=${pageToken}&video_state=PUBLISHED`;
+                    req.session.videoId = videoId;
+                    if(isUploadSuccessfull) {
+                        res.render("upload_page", {
+                            uploaded: true,
+                            next: "publish",
+                            message: `Video ID# ${videoId} Uploaded Successfully !`
+                        });
+                    } else {
+                        res.render("upload_page", {
+                            uploaded: false,
+                            message: `Video ID# ${videoId} Upload Failed !`
+                        });
+                    }
+                } catch(error) {
+                    res.render('index', {'error':`There was an error with the request: ${error}`});
+                }
             }
-        } catch(error) {
-            res.render('index', {'error':`There was an error with the request: ${error}`});
         }
-    }
+    });
 });
 
 // Publish Reels on the Selected Page
@@ -157,12 +169,13 @@ app.get('/publishReels', async function(req, res) {
 
         if(isPublishSuccessfull) {
             res.render("upload_page", {
-                success: true,
+                published: true,
                 message: `Video ID# ${videoId} Published Successfully !`
             });
         } else {
             res.render("upload_page", {
-                success: false,
+                published: false,
+                error: true,
                 message: `Video ID# ${videoId} Publish Failed !`
             });
         }
@@ -175,7 +188,7 @@ app.get('/publishReels', async function(req, res) {
 app.get('/logout', function(req, res){
     if (req.session) {
         req.session.destroy(err => {
-            if (err){
+            if (err) {
                 res.render('index', {'error': 'Unable to log out'});
             } else {
                 res.render('index', {'response': 'Logout successful!'});
@@ -187,9 +200,9 @@ app.get('/logout', function(req, res){
 });
 
 https.createServer({
-  key: fs.readFileSync(path.join(__dirname,'./localhost-key.pem')),
-  cert: fs.readFileSync(path.join(__dirname, './localhost.pem'))
+    key: fs.readFileSync(path.join(__dirname,'./localhost-key.pem')),
+    cert: fs.readFileSync(path.join(__dirname, './localhost.pem'))
 }, app).listen(PORT, HOST, (err) => {
-  if (err) console.log(`Error: ${err}`);
-  console.log(`listening on port ${PORT}!`);
+    if (err) console.log(`Error: ${err}`);
+    console.log(`listening on port ${PORT}!`);
 });
