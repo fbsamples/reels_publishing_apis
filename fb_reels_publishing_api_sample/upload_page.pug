@@ -29,7 +29,7 @@ html
       else if(!uploaded && error)
         .alert-error
           span.closebtn(onclick="this.parentElement.style.display='none';") &times;
-          |   Error Occured in Upload #{message}
+          |   #{message}
       else if(published)
         .alert
           span.closebtn(onclick="this.parentElement.style.display='none';") &times;
