@@ -116,62 +116,74 @@ app.post("/uploadReels", function (req, res) {
     const uploadSingleVideo = videoUpload.single("videoFile");
     uploadSingleVideo(req, res, async function (err) {
         const selectedPageID = req.body.pageID;
-        const pageToken = req.session.pageData.filter(
-            (pd) => pd.id === selectedPageID
-        )[0].access_token;
-        if (err) {
+        if(!selectedPageID) {
+            // page not selected
+            res.render("upload_page", {
+                uploaded: false,
+                error: true,
+                message: "No page has been selected",
+            });
+        }else if (err) {
+            // error during videoUpload
             res.render("upload_page", {
                 uploaded: false,
                 error: true,
                 pages: req.session.pageData,
                 message: err,
             });
+        } else if (!req.file){
+            // file not selected
+            res.render("upload_page", {
+                uploaded: false,
+                error: true,
+                pages: req.session.pageData,
+                message: "No file has been selected",
+            });
         } else {
             const filePath = `${__dirname}/${req.file.path}`;
             const data = fs.readFileSync(filePath);
             const size = req.file.size;
-            if (selectedPageID === "") {
-                res.render("upload_page", { error: "You need to select a page" });
-            } else {
-                try {
-                    // generate video id
-                    const uploadStartUri = `https://graph.facebook.com/v13.0/${selectedPageID}/video_reels?upload_phase=start&access_token=${pageToken}`;
-                    const initiateUploadResponse = await axios.post(uploadStartUri);
-                    const videoId = initiateUploadResponse.data.video_id;
+            const pageToken = req.session.pageData.filter(
+                (pd) => pd.id === selectedPageID
+            )[0].access_token;
+            try {
+                // generate video id
+                const uploadStartUri = `https://graph.facebook.com/v13.0/${selectedPageID}/video_reels?upload_phase=start&access_token=${pageToken}`;
+                const initiateUploadResponse = await axios.post(uploadStartUri);
+                const videoId = initiateUploadResponse.data.video_id;
 
-                    // upload video
-                    const uploadBinaryUri = `https://rupload.facebook.com/video-upload/v13.0/${videoId}`;
-                    const uploadBinaryResponse = await axios.post(uploadBinaryUri, data, {
-                        headers: {
-                            Authorization: `OAuth ${pageToken}`,
-                            offset: 0,
-                            "X-Entity-Name": "video.mp4",
-                            "X-Entity-Type": "video/mp4",
-                            "X-Entity-Length": size,
-                        },
+                // upload video
+                const uploadBinaryUri = `https://rupload.facebook.com/video-upload/v13.0/${videoId}`;
+                const uploadBinaryResponse = await axios.post(uploadBinaryUri, data, {
+                    headers: {
+                        Authorization: `OAuth ${pageToken}`,
+                        offset: 0,
+                        "X-Entity-Name": "video.mp4",
+                        "X-Entity-Type": "video/mp4",
+                        "X-Entity-Length": size,
+                    },
+                });
+                const isUploadSuccessful = uploadBinaryResponse.data.success;
+
+                // add publish reel url to the session
+                req.session.publishReelUrl = `https://graph.facebook.com/v13.0/${selectedPageID}/video_reels?upload_phase=finish&video_id=${videoId}&access_token=${pageToken}&video_state=PUBLISHED`;
+                req.session.videoId = videoId;
+                if (isUploadSuccessful) {
+                    res.render("upload_page", {
+                        uploaded: true,
+                        next: "publish",
+                        message: `Video ID# ${videoId} Uploaded Successfully !`,
                     });
-                    const isUploadSuccessfull = uploadBinaryResponse.data.success;
-
-                    // add publish reel url to the session
-                    req.session.publishReelUrl = `https://graph.facebook.com/v13.0/${selectedPageID}/video_reels?upload_phase=finish&video_id=${videoId}&access_token=${pageToken}&video_state=PUBLISHED`;
-                    req.session.videoId = videoId;
-                    if (isUploadSuccessfull) {
-                        res.render("upload_page", {
-                            uploaded: true,
-                            next: "publish",
-                            message: `Video ID# ${videoId} Uploaded Successfully !`,
-                        });
-                    } else {
-                        res.render("upload_page", {
-                            uploaded: false,
-                            message: `Video ID# ${videoId} Upload Failed !`,
-                        });
-                    }
-                } catch (error) {
-                    res.render("index", {
-                        error: `There was an error with the request: ${error}`,
+                } else {
+                    res.render("upload_page", {
+                        uploaded: false,
+                        message: `Video ID# ${videoId} Upload Failed !`,
                     });
                 }
+            } catch (error) {
+                res.render("index", {
+                    error: `There was an error with the request: ${error}`,
+                });
             }
         }
     });
@@ -182,9 +194,8 @@ app.get("/publishReels", async function (req, res) {
     const { publishReelUrl, videoId } = req.session;
     try {
         const publishResponse = await axios.post(publishReelUrl);
-        const isPublishSuccessfull = publishResponse.data.success;
-
-        if (isPublishSuccessfull) {
+        const isPublishSuccessful = publishResponse.data.success;
+        if (isPublishSuccessful) {
             res.render("upload_page", {
                 published: true,
                 message: `Video ID# ${videoId} Published Successfully !`,
