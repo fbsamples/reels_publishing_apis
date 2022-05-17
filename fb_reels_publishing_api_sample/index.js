@@ -39,7 +39,7 @@ const videoUpload = multer({
     },
     fileFilter(req, file, cb) {
     // upload only mp4 and mkv format
-        if (!file.originalname.match(/\.(3g2|3gp|3gpp|asf|avi|dat|divx|dv|f4v|flv|m2ts|m4v|mkv|mod|mov|mp4|mpe|mpeg|mpeg4|mpg|mts|nsv|ogm|ogv|qt|tod|ts|vob|wmv)$/)) {
+        if (!file.originalname.match(/\.(3g2|3gp|3gpp|asf|avi|dat|divx|dv|f4v|flv|m2ts|m4v|mkv|mod|mov|mp4|mpe|mpeg|mpeg4|mpg|mts|nsv|ogm|ogv|qt|tod|ts|vob|wmv)$/i)) {
             return cb(new Error("Please upload a video that matches the format"));
         }
         cb(undefined, true);
