@@ -1,0 +1,46 @@
+//  Copyright (c) Meta Platforms, Inc. and affiliates.
+//  All rights reserved.
+//  This source code is licensed under the license found in the
+//  LICENSE file in the root directory of this source tree.
+
+doctype
+html
+  head
+    title Facebook Reels Publishing API Sample App
+    link(rel='stylesheet', href='/style.css')
+  body
+    header
+      h1 Facebook Reels Publishing API Sample App
+    .canvas
+      - let pagesArr = pages ?? [];
+      if (pagesArr.length > 0)
+        form(action='/uploadReels', method='POST', enctype="multipart/form-data")
+          b Select a Page to upload video to
+          div(class='radio-group')
+            each page, index in pagesArr
+              div(class='radio-child')
+                input(type="radio" id=`page-${index}` name="pageID" value=page.id)
+                label(for=`page-${index}`) Page: #{page.name} - #{page.id}
+          input(type='file', name='videoFile')
+          input(type='submit', name='uploadReels', value='Upload Video')
+      if(uploaded)
+        .alert
+          span.closebtn(onclick="this.parentElement.style.display='none';") &times;
+          |   #{message}
+        if(next == "publish")
+          button(onclick="location.href='/publishReels'") Publish
+        button(onclick="location.href='/logout'") Log Out
+      else if(!uploaded && error)
+        .alert-error
+          span.closebtn(onclick="this.parentElement.style.display='none';") &times;
+          |   #{message}
+      else if(published)
+        .alert
+          span.closebtn(onclick="this.parentElement.style.display='none';") &times;
+          |   #{message}
+        button(onclick="location.href='/logout'") Log Out
+      else if(!published && error)
+        .alert-error
+          span.closebtn(onclick="this.parentElement.style.display='none';") &times;
+          |   #{message}
+        button(onclick="location.href='/logout'") Log Out

@@ -1,0 +1,95 @@
+/* 
+//  Copyright (c) Meta Platforms, Inc. and affiliates.
+//  All rights reserved.
+//  This source code is licensed under the license found in the
+//  LICENSE file in the root directory of this source tree.
+*/
+* {
+	font-family: sans-serif;
+}
+
+button {
+	background-color: #4CAF50; /* Green */
+	border: none;
+	color: white;
+	padding: 10px 20px;
+	text-align: center;
+	font-size: 15px;
+	display: block;
+	margin: 10px auto;
+	width: 200px;
+}
+
+body {
+	margin: 60px 40px;
+	text-align: center;
+}
+
+input[type='submit']{
+	justify-content: center;
+	width: 100px;
+}
+
+input[type='file']{
+	width: 250px;
+}
+
+input[type='text'] {
+	width: 500px;
+	height: 20px;
+}
+
+label {
+	text-align: center;
+}
+
+.btn-group {
+	margin: 20px auto;
+	width: 30%;
+}
+
+.title {
+	display: inline-block;
+	padding-bottom: -10px;
+	text-align: center;
+	margin: 20px;
+}
+
+.radio-group {
+	margin: 20px auto;
+	text-align: center;
+	width: 500px;
+}
+
+.radio-child {
+	text-align: left;
+}
+
+.alert {
+	margin: 30px 10px;
+	padding: 10px;
+	background-color: #3b9610;
+	color: white;
+}
+
+.alert-error {
+	margin: 30px 10px;
+	padding: 10px;
+	background-color: #a51414;
+	color: white;
+}
+
+.closebtn {
+	margin-left: 15px;
+	color: white;
+	font-weight: bold;
+	float: right;
+	font-size: 22px;
+	line-height: 20px;
+	cursor: pointer;
+	transition: 0.3s;
+}
+
+.closebtn:hover {
+	color: black;
+}
