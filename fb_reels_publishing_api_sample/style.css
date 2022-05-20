@@ -9,7 +9,7 @@
 }
 
 button {
-	background-color: #4CAF50; /* Green */
+	background-color: #2196F3; /* Green */
 	border: none;
 	color: white;
 	padding: 10px 20px;
@@ -28,6 +28,15 @@ body {
 input[type='submit']{
 	justify-content: center;
 	width: 100px;
+	background-color: #2196F3; /* Green */
+	border: none;
+	color: white;
+	padding: 10px 20px;
+	text-align: center;
+	font-size: 15px;
+	display: block;
+	margin: 10px auto;
+	width: 200px;
 }
 
 input[type='file']{

@@ -32,6 +32,9 @@ const STRINGIFIED_SCOPES = SCOPES.join("%2c");
 const storageDestinationAtRoot = "local/store/videos";
 const uploadSizeLimit = 100000000;
 
+let hasVerifiedConsentBeforePublishing = false;
+let publishReelUrl;
+
 const videoUpload = multer({
     storage: multer.diskStorage({
         destination: storageDestinationAtRoot,
@@ -128,7 +131,7 @@ app.post("/uploadReels", function (req, res) {
                 error: true,
                 message: "No page has been selected",
             });
-        }else if (err) {
+        } else if (err) {
             // error during videoUpload
             res.render("upload_page", {
                 uploaded: false,
@@ -148,9 +151,7 @@ app.post("/uploadReels", function (req, res) {
             const filePath = `${__dirname}/${req.file.path}`;
             const data = fs.readFileSync(filePath);
             const size = req.file.size;
-            const pageToken = req.session.pageData.filter(
-                (pd) => pd.id === selectedPageID
-            )[0].access_token;
+            const pageToken = req.session.pageData.filter((pd) => pd.id === selectedPageID)[0].access_token;
             try {
                 // generate video id
                 const uploadStartUri = `https://graph.facebook.com/v13.0/${selectedPageID}/video_reels?upload_phase=start&access_token=${pageToken}`;
@@ -163,16 +164,12 @@ app.post("/uploadReels", function (req, res) {
                     headers: {
                         Authorization: `OAuth ${pageToken}`,
                         offset: 0,
-                        "X-Entity-Name": "video.mp4",
-                        "X-Entity-Type": "video/mp4",
-                        "X-Entity-Length": size,
+                        file_size: size
                     },
                 });
                 const isUploadSuccessful = uploadBinaryResponse.data.success;
-
-                // add publish reel url to the session
-                req.session.publishReelUrl = `https://graph.facebook.com/v13.0/${selectedPageID}/video_reels?upload_phase=finish&video_id=${videoId}&access_token=${pageToken}&video_state=PUBLISHED`;
-                req.session.videoId = videoId;
+                // add variables to the session
+                Object.assign(req.session, { videoId, selectedPageID, pageToken });
                 if (isUploadSuccessful) {
                     res.render("upload_page", {
                         uploaded: true,
@@ -195,27 +192,36 @@ app.post("/uploadReels", function (req, res) {
 });
 
 // Publish Reels on the Selected Page
-app.get("/publishReels", async function (req, res) {
-    const { publishReelUrl, videoId } = req.session;
-    try {
-        const publishResponse = await axios.post(publishReelUrl);
-        const isPublishSuccessful = publishResponse.data.success;
-        if (isPublishSuccessful) {
-            res.render("upload_page", {
-                published: true,
-                message: `Video ID# ${videoId} Published Successfully !`,
-            });
-        } else {
-            res.render("upload_page", {
-                published: false,
-                error: true,
-                message: `Video ID# ${videoId} Publish Failed !`,
+app.post("/publishReels", async function (req, res) {
+    const enableRemixing = req.body.enableRemixing ? true : false;
+    const { selectedPageID, pageToken, videoId } = req.session;
+
+    // If consent for enabling remixing has not been taken before, first render consent modal to take that
+    if(!hasVerifiedConsentBeforePublishing) {
+        res.render("user_consent_modal");
+        hasVerifiedConsentBeforePublishing = true;
+    } else { // Publish Reel once consent has been verified
+        publishReelUrl = `https://graph.facebook.com/v13.0/${selectedPageID}/video_reels?upload_phase=finish&video_id=${videoId}&allow_video_remixing=${enableRemixing}&access_token=${pageToken}&video_state=PUBLISHED`;
+        try {
+            const publishResponse = await axios.post(publishReelUrl);
+            const isPublishSuccessful = publishResponse.data.success;
+            if (isPublishSuccessful) {
+                res.render("upload_page", {
+                    published: true,
+                    message: `Video ID# ${videoId} Published Successfully !`,
+                });
+            } else {
+                res.render("upload_page", {
+                    published: false,
+                    error: true,
+                    message: `Video ID# ${videoId} Publish Failed !`,
+                });
+            }
+        } catch (error) {
+            res.render("index", {
+                error: `There was an error with the request: ${error}`,
             });
         }
-    } catch (error) {
-        res.render("index", {
-            error: `There was an error with the request: ${error}`,
-        });
     }
 });
 

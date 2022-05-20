@@ -21,14 +21,15 @@ html
               div(class='radio-child')
                 input(type="radio" id=`page-${index}` name="pageID" value=page.id)
                 label(for=`page-${index}`) Page: #{page.name} - #{page.id}
-          input(type='file', name='videoFile')
-          input(type='submit', name='uploadReels', value='Upload Video')
+          input(id='file-upload' type='file', name='videoFile')
+          input(type='submit', class="btn btn-primary", name='uploadReels', value='Upload Video')
       if(uploaded)
         .alert
           span.closebtn(onclick="this.parentElement.style.display='none';") &times;
           |   #{message}
         if(next == "publish")
-          button(onclick="location.href='/publishReels'") Publish
+          form(method='POST', action='/publishReels')
+            input(type='submit', class="btn btn-primary", name='publishReels', value='Publish')
         button(onclick="location.href='/logout'") Log Out
       else if(!uploaded && error)
         .alert-error
