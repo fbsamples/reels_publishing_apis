@@ -29,7 +29,7 @@ html
           |   #{message}
         if(next == "publish")
           form(method='POST', action='/publishReels')
-            input(type='submit', class="btn btn-primary", name='publishReels', value='Publish', onclick="this.form.submit(); this.disabled = true;")
+            input(type='submit', name='publishReels', value='Publish', onclick="this.form.submit(); this.disabled = true;")
         button(onclick="location.href='/logout'") Log Out
       else if(!uploaded && error)
         .alert-error
