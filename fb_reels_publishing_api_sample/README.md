@@ -21,6 +21,7 @@ You will need the following:
 For simplicity, this sample guide assumes that you save every file at the root level of the app directory without any nested folder structures except for node modules.
 
 ## Video Requirements for Publishing
+Make sure the videos are in accordance with the guidelines below:
 
 ### Supported Video Prooperties
 |   Property        |   Min (or n/a)    |   Max (or n/a)    |
