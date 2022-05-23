@@ -20,6 +20,25 @@ You will need the following:
 
 For simplicity, this sample guide assumes that you save every file at the root level of the app directory without any nested folder structures except for node modules.
 
+## Video Requirements for Publishing
+
+### Supported Video Prooperties
+|   Property        |   Min (or n/a)    |   Max (or n/a)    |
+|   ---------       |   -----------     |   ------------    |
+|   Resolution      |   540 x 960 (540p)|       n/a         |
+|   Aspect Ratio    |   9x16            |       9x16        |
+|   Frame Rate      |   30              |       n/a         |
+|   Duration        |   4 sec           |       60 sec      |
+|   File Size       |   n/a             |       n/a         |
+
+### Supported Video Formats
+We support the following formats for uploaded video/reels: 3g2, 3gp, 3gpp, asf, avi, dat, divx, dv, f4v, flv, m2ts, m4v, mkv, mod, mov, mp4, mpe, mpeg, mpeg4, mpg, mts, nsv, ogm, ogv, qt, tod, ts, vob, wmv.
+
+### Recommended Settings
+* File Type: MP4, MOV
+* Resolution: 1080x1920 or greater
+* Video Settings: H.264 compression, square pixels, fixed frame rate, progressive, AAC audio at 128kbps+
+
 ## Running the project
 
 * Run `npm install` in your terminal
