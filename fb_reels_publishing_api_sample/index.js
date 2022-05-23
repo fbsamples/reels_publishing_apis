@@ -32,9 +32,6 @@ const STRINGIFIED_SCOPES = SCOPES.join("%2c");
 const storageDestinationAtRoot = "local/store/videos";
 const uploadSizeLimit = 100000000;
 
-let hasVerifiedConsentBeforePublishing = false;
-let publishReelUrl;
-
 const videoUpload = multer({
     storage: multer.diskStorage({
         destination: storageDestinationAtRoot,
@@ -168,8 +165,9 @@ app.post("/uploadReels", function (req, res) {
                     },
                 });
                 const isUploadSuccessful = uploadBinaryResponse.data.success;
+                const hasVerifiedConsentBeforePublishing = false;
                 // add variables to the session
-                Object.assign(req.session, { videoId, selectedPageID, pageToken });
+                Object.assign(req.session, { videoId, selectedPageID, pageToken, hasVerifiedConsentBeforePublishing });
                 if (isUploadSuccessful) {
                     res.render("upload_page", {
                         uploaded: true,
@@ -194,14 +192,14 @@ app.post("/uploadReels", function (req, res) {
 // Publish Reels on the Selected Page
 app.post("/publishReels", async function (req, res) {
     const enableRemixing = req.body.enableRemixing ? true : false;
-    const { selectedPageID, pageToken, videoId } = req.session;
+    const { selectedPageID, pageToken, videoId, hasVerifiedConsentBeforePublishing } = req.session;
 
     // If consent for enabling remixing has not been taken before, first render consent modal to take that
-    if(!hasVerifiedConsentBeforePublishing) {
+    if(hasVerifiedConsentBeforePublishing === false) {
+        req.session.hasVerifiedConsentBeforePublishing = true;
         res.render("user_consent_modal");
-        hasVerifiedConsentBeforePublishing = true;
     } else { // Publish Reel once consent has been verified
-        publishReelUrl = `https://graph.facebook.com/v13.0/${selectedPageID}/video_reels?upload_phase=finish&video_id=${videoId}&allow_video_remixing=${enableRemixing}&access_token=${pageToken}&video_state=PUBLISHED`;
+        const publishReelUrl = `https://graph.facebook.com/v13.0/${selectedPageID}/video_reels?upload_phase=finish&video_id=${videoId}&allow_video_remixing=${enableRemixing}&access_token=${pageToken}&video_state=PUBLISHED`;
         try {
             const publishResponse = await axios.post(publishReelUrl);
             const isPublishSuccessful = publishResponse.data.success;

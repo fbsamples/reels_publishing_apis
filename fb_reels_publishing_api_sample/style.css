@@ -39,6 +39,10 @@ input[type='submit']{
 	width: 200px;
 }
 
+input[type='submit']:disabled{
+	background-color: #cccccc;
+}
+
 input[type='file']{
 	width: 250px;
 }
