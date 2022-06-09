@@ -27,6 +27,9 @@ const SCOPES = [
 ];
 const STRINGIFIED_SCOPES = SCOPES.join("%2c");
 
+// For the alpha program, remix is turned off by default. Turn this flag back off when remix becomes available
+const forceDisableRemix = true;
+
 // Multer is the intermediate file storage middleware for keeping the uploaded file locally.
 // Then files are read from this storage and uploaded to FB.
 const storageDestinationAtRoot = "local/store/videos";
@@ -191,11 +194,11 @@ app.post("/uploadReels", function (req, res) {
 
 // Publish Reels on the Selected Page
 app.post("/publishReels", async function (req, res) {
-    const enableRemixing = req.body.enableRemixing ? true : false;
+    const enableRemixing = forceDisableRemix ? false : req.body.enableRemixing ? true : false;
     const { selectedPageID, pageToken, videoId, hasVerifiedConsentBeforePublishing } = req.session;
 
     // If consent for enabling remixing has not been taken before, first render consent modal to take that
-    if(hasVerifiedConsentBeforePublishing === false) {
+    if(hasVerifiedConsentBeforePublishing === false && forceDisableRemix === false) {
         req.session.hasVerifiedConsentBeforePublishing = true;
         res.render("user_consent_modal");
     } else { // Publish Reel once consent has been verified
