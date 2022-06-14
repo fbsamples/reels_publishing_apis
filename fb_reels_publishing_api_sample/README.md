@@ -23,7 +23,7 @@ For simplicity, this sample guide assumes that you save every file at the root l
 ## Video Requirements for Publishing
 Make sure the videos are in accordance with the guidelines below:
 
-### Supported Video Prooperties
+### Supported Video Properties
 |   Property        |   Min (or n/a)    |   Max (or n/a)    |
 |   ---------       |   -----------     |   ------------    |
 |   Resolution      |   540 x 960 (540p)|       n/a         |

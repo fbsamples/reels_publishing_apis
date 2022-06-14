@@ -14,15 +14,15 @@ html
         .canvas
             - let pagesArr = pages ?? [];
             if (pagesArr.length > 0)
-            form(action='/uploadReels', method='POST')
-                b Select an Page associated with Instagram Business Account ID to publish reel to
-                div(class='radio-group')
-                    each page, index in pagesArr
-                        div(class='radio-child')
-                            input(type="radio" id=`page-${index}` name="pageID" value=page.id)
-                            label(for=`page-${index}`) Page: #{page.name} - #{page.id}
-                .submitButton
-                    input(type='submit', value='Upload')
+                form(action='/uploadReels' name="uploadForm" id="uploadForm" method='POST')
+                    b Select an Page associated with Instagram Business Account ID to publish reel to
+                    div(class='radio-group')
+                        each page, index in pagesArr
+                            div(class='radio-child')
+                                label(for=`page-${index}`)
+                                    input(type='radio' id=`page-${index}` name="pageID" value=page.id)
+                                    |  Page: #{page.name} - #{page.id}
+                    input(type='submit' value='Upload' onclick="this.form.submit(); this.disabled = true;")
             if(uploaded)
                 if(igUserId && containerId)
                     .alert
@@ -34,6 +34,8 @@ html
                     .alert
                         span.closebtn(onclick="this.parentElement.style.display='none';") &times;
                         |   #{message}
+                if(permalink)
+                    a(href=permalink target="_blank") Link to Instagram Post
             else if(!uploaded)
                 if(igUserId)
                     .alert

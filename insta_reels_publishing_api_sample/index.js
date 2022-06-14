@@ -9,10 +9,10 @@ const express = require("express");
 const app = express();
 const session = require("express-session");
 const bodyParser = require("body-parser");
-const fs = require("fs");
 const { default: axios } = require("axios");
 const https = require("https");
 const path = require("path");
+const fs = require("fs");
 
 // Read variables from environment
 require("dotenv").config();
@@ -110,7 +110,7 @@ app.post("/uploadReels", async function (req, res) {
     if(hasIgBusinessAccount) {
         const igUserId = igResponse.data.instagram_business_account.id;
         // Upload Reel Video
-        const yourVideoUrl = "https://static.videezy.com/system/resources/previews/000/032/359/original/MM008645___BOUNCING_FRUIT_009___1080p___phantom.mp4";
+        const yourVideoUrl = "https://static.videezy.com/system/resources/previews/000/032/259/original/MM008527___BLENDER_007___1080p___phantom.mp4";
         const yourCaption = "Test caption"
         const uploadVideoUri = `https://graph.facebook.com/v14.0/${igUserId}/media?media_type=VIDEO&video_url=${yourVideoUrl}&caption=${yourCaption}&access_token=${pageToken}`;
         const uploadResponse = await axios.post(uploadVideoUri);
@@ -151,11 +151,17 @@ app.post("/publishReels", async function (req, res) {
         const publishResponse = await axios.post(publishVideoUri);
         const publishedMediaId = publishResponse.data.id;
 
+        // Get PermaLink to redirect the user to the post
+        const permaLinkUri = `https://graph.facebook.com/v14.0/${publishedMediaId}?fields=permalink&access_token=${pageToken}`
+        const permalinkResponse = await axios.get(permaLinkUri);
+        const permalink = permalinkResponse.data.permalink;
+
         // Render Publish Success
         res.render("upload_page", {
             uploaded: true,
             published: true,
             igUserId,
+            permalink,
             publishedMediaId,
             pages: req.session.pageData,
             message: `Reel Published successfully on IG UserID #${igUserId} with Publish Media ID #${publishedMediaId}`
@@ -185,7 +191,6 @@ app.get("/logout", function (req, res) {
     }
 });
 
-
 // Setting retries with exponential backoff,
 // as async video upload may take a while in the backed to return success
 // ts can be any appropriate number for timelapse
@@ -196,7 +201,6 @@ const delay = (retryCount) => new Promise(resolve => setTimeout(resolve, ts ** r
 const getUploadStatus = async(retryCount, checkStatusUri) => {
     try {
         if (retryCount > 10) return false;
-
         const response = await axios.get(checkStatusUri);
         if(response.data.status_code != "FINISHED") {
             await delay(retryCount);
