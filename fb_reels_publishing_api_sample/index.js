@@ -22,7 +22,6 @@ const { HOST, PORT, REDIRECT_URI, APP_ID, API_SECRET } = process.env;
 const SCOPES = [
     "pages_read_engagement",
     "pages_show_list",
-    "publish_video",
     "pages_manage_posts",
 ];
 const STRINGIFIED_SCOPES = SCOPES.join("%2c");
