@@ -13,6 +13,8 @@ const fs = require("fs");
 const path = require("path");
 const multer = require("multer");
 
+let checkingStatus = false;
+
 require("dotenv").config();
 
 // Read variables from environment
@@ -183,6 +185,7 @@ app.post("/uploadReels", function (req, res) {
                     });
                 }
             } catch (error) {
+                console.log(error)
                 res.render("index", {
                     error: `There was an error with the request: ${error}`,
                 });
@@ -202,13 +205,20 @@ app.post("/publishReels", async function (req, res) {
         res.render("user_consent_modal");
     } else { // Publish Reel once consent has been verified
         const publishReelUrl = `https://graph.facebook.com/v13.0/${selectedPageID}/video_reels?upload_phase=finish&video_id=${videoId}&allow_video_remixing=${enableRemixing}&access_token=${pageToken}&video_state=PUBLISHED`;
+        const statusUri = `https://graph.facebook.com/v13.0/${videoId}/?fields=status&access_token=${pageToken}`;
         try {
+            // Check first if uploading phase is successfull, then publish
+            const isUploaded = await checkAsyncStatus(0, statusUri, "uploading_phase");
+            // Then Initiate Publishing Reel
             const publishResponse = await axios.post(publishReelUrl);
-            const isPublishSuccessful = publishResponse.data.success;
-            if (isPublishSuccessful) {
+            const hasInititatedPublishing = publishResponse.data.success;
+
+            Object.assign(req.session, { statusUri, videoId });
+            if(hasInititatedPublishing) {
                 res.render("upload_page", {
-                    published: true,
-                    message: `Video ID# ${videoId} Published Successfully !`,
+                    published: false,
+                    processing: true,
+                    message: `Video ID# ${videoId} has been processed successfully and is now Publishing. Please check status !!`,
                 });
             } else {
                 res.render("upload_page", {
@@ -225,6 +235,24 @@ app.post("/publishReels", async function (req, res) {
     }
 });
 
+app.post("/checkStatus", async function (req, res) {
+    const { statusUri, videoId } = req.session;
+    const statusResponse = await axios.get(statusUri);
+    let message, published=false;
+
+    if(statusResponse.data.status.publishing_phase.status == 'complete') {
+        message = `[Publish Status] Video ID# ${videoId} has Published Successfully !!`;
+        published = true;
+    } else {
+        message = `[Publish Status] Video ID# ${videoId} is processing...`;
+    }
+    res.render("upload_page", {
+        published,
+        processing: true,
+        message
+    });
+});
+
 // Logout route to kill the session
 app.get("/logout", function (req, res) {
     if (req.session) {
@@ -239,6 +267,27 @@ app.get("/logout", function (req, res) {
         res.render("index", { response: "Token not stored in session" });
     }
 });
+
+// Setting retries with exponential backoff,
+// as async video upload may take a while in the backed to return success
+// ts can be any appropriate number for timelapse
+const ts = 2;
+const delay = (retryCount) => new Promise(resolve => setTimeout(resolve, ts ** retryCount));
+
+// Retrieves container status for the uploaded video, while its uploading in the backend asynchronously
+const checkAsyncStatus = async(retryCount, checkStatusUri, phase) => {
+    try {
+        if (retryCount > 20) return false;
+        const response = await axios.get(checkStatusUri);
+        if(response.data.status[phase].status != "complete") {
+            await delay(retryCount);
+            return checkAsyncStatus(retryCount+1, checkStatusUri, phase);
+        }
+        return true;
+    } catch(e) {
+        throw e;
+    }
+}
 
 https
     .createServer({
