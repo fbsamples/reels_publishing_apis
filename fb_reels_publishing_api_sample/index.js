@@ -185,7 +185,6 @@ app.post("/uploadReels", function (req, res) {
                     });
                 }
             } catch (error) {
-                console.log(error)
                 res.render("index", {
                     error: `There was an error with the request: ${error}`,
                 });
