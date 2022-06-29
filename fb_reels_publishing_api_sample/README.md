@@ -23,7 +23,7 @@ For simplicity, this sample guide assumes that you save every file at the root l
 ## Video Requirements for Publishing
 Make sure the videos are in accordance with the guidelines below:
 
-### Supported Video Prooperties
+### Supported Video Properties
 |   Property        |   Min (or n/a)    |   Max (or n/a)    |
 |   ---------       |   -----------     |   ------------    |
 |   Resolution      |   540 x 960 (540p)|       n/a         |
@@ -39,6 +39,12 @@ We support the following formats for uploaded video/reels: 3g2, 3gp, 3gpp, asf, 
 * File Type: MP4, MOV
 * Resolution: 1080x1920 or greater
 * Video Settings: H.264 compression, square pixels, fixed frame rate, progressive, AAC audio at 128kbps+
+
+### Best Practices
+* Always make sure that videos to be uploaded meet the supported video requirements
+* Upload and publish requests are asynchronous. This means that a success response is a simple acknowledgement from the server and does not necessarily guarantee that the video was uploaded successfully. Make sure to implement a checking mechanism like polling to check the status of the video uploads. 
+* There are different sets of errors in each request. Make sure to handle the errors properly.
+* Note that there are various ways of FB login. This sample app uses a sever-side solution. Make sure to browse [all available options](https://developers.facebook.com/docs/facebook-login/overview) and choose the most optimal way for your implementation. 
 
 ## Running the project
 
