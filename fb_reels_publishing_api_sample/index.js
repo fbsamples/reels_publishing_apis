@@ -186,12 +186,12 @@ app.post("/uploadReels", function (req, res) {
                     res.render("upload_page", {
                         uploaded: true,
                         next: "publish",
-                        message: `Video ID# ${videoId} Uploaded Successfully !`,
+                        message: `Video ID# ${videoId} upload has been initiated successfully !`,
                     });
                 } else {
                     res.render("upload_page", {
                         uploaded: false,
-                        message: `Video ID# ${videoId} Upload Failed !`,
+                        message: `Video ID# ${videoId} upload failed !`,
                     });
                 }
             } catch (error) {
@@ -205,6 +205,9 @@ app.post("/uploadReels", function (req, res) {
 
 /**
  * Publish Reels on the Selected Page
+ * Note that a successful publish request is an acknowledgement that the publish request has been received successfully 
+ * and doesn't necessarily mean the video was published successfully.
+ * In order to confirm that the video was published successfully, a status check request needs to be sent (see /checkStatus).
  **/
 app.post("/publishReels", async function (req, res) {
     const enableRemixing = forceDisableRemix ? false : req.body.enableRemixing ? true : false;
@@ -216,16 +219,12 @@ app.post("/publishReels", async function (req, res) {
         res.render("user_consent_modal");
     } else { // Publish Reel once consent has been verified
         const publishReelUrl = `https://graph.facebook.com/v13.0/${selectedPageID}/video_reels?upload_phase=finish&video_id=${videoId}&allow_video_remixing=${enableRemixing}&access_token=${pageToken}&video_state=PUBLISHED`;
-        const statusUri = `https://graph.facebook.com/v13.0/${videoId}/?fields=status&access_token=${pageToken}`;
         try {
-            // Check first if uploading phase is successfull, then publish
-            const isUploaded = await checkAsyncStatus(0, statusUri, "uploading_phase");
             // Then Initiate Publishing Reel
             const publishResponse = await axios.post(publishReelUrl);
-            const hasInititatedPublishing = publishResponse.data.success;
+            const hasInitiatedPublishing = publishResponse.data.success;
 
-            Object.assign(req.session, { statusUri, videoId });
-            if(hasInititatedPublishing) {
+            if(hasInitiatedPublishing) {
                 res.render("upload_page", {
                     published: false,
                     processing: true,
@@ -256,7 +255,8 @@ app.post("/publishReels", async function (req, res) {
  * or something similar
  */
 app.post("/checkStatus", async function (req, res) {
-    const { statusUri, videoId } = req.session;
+    const { pageToken, videoId } = req.session;
+    const statusUri = `https://graph.facebook.com/v13.0/${videoId}/?fields=status&access_token=${pageToken}`;
     const statusResponse = await axios.get(statusUri);
     let message, published=false, error=false, processing=false;
 
@@ -275,7 +275,7 @@ app.post("/checkStatus", async function (req, res) {
         error = true;
     } else {
         if(statusResponse.data.status.publishing_phase.status == 'complete') {
-            message = `[Publish Status] Video ID# ${videoId} has Published Successfully !!`;
+            message = `[Publish Status] Video ID# ${videoId} has been published successfully !!`;
             published = true;
             processing = true
         } else {
@@ -301,33 +301,6 @@ app.get("/logout", function (req, res) {
         res.render("index", { response: "Token not stored in session" });
     }
 });
-
-/**
- * [User Modifiable]
- * Setting retries with exponential backoff,
- * as async video upload may take a while in the backed to return success
- * ts can be any appropriate number for timelapse
-**/
-const ts = 2;
-const delay = (retryCount) => new Promise(resolve => setTimeout(resolve, ts ** retryCount));
-
-/**
- * [User Modifiable]
- * Retrieves container status for the uploaded video, while its uploading in the backend asynchronously
- * */
-const checkAsyncStatus = async(retryCount, checkStatusUri, phase) => {
-    try {
-        if (retryCount > 20) return false;
-        const response = await axios.get(checkStatusUri);
-        if(response.data.status[phase].status != "complete") {
-            await delay(retryCount);
-            return checkAsyncStatus(retryCount+1, checkStatusUri, phase);
-        }
-        return true;
-    } catch(e) {
-        throw e;
-    }
-}
 
 const collectErrorMessagesFromArrayOfErrors = (errors) => {
     let errorMsgs = "";
