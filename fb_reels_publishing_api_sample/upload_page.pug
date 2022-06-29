@@ -40,6 +40,12 @@ html
           span.closebtn(onclick="this.parentElement.style.display='none';") &times;
           |   #{message}
         button(onclick="location.href='/logout'") Log Out
+      else if(!published && processing)
+        .alert
+          span.closebtn(onclick="this.parentElement.style.display='none';") &times;
+          | #{message}
+        form(method='POST', action='/checkStatus')
+          input(type='submit', name='checkStatus', value='Check Status', onclick="this.form.submit(); this.disabled = true;")
       else if(!published && error)
         .alert-error
           span.closebtn(onclick="this.parentElement.style.display='none';") &times;

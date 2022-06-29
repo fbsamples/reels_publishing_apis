@@ -29,8 +29,12 @@ const STRINGIFIED_SCOPES = SCOPES.join("%2c");
 // For the alpha program, remix is turned off by default. Turn this flag back off when remix becomes available
 const forceDisableRemix = true;
 
-// Multer is the intermediate file storage middleware for keeping the uploaded file locally.
-// Then files are read from this storage and uploaded to FB.
+/**
+ * [User Modifiable]
+ * Multer is the intermediate file storage middleware for keeping the uploaded file locally.
+ * Then files are read from this storage and uploaded to FB.
+ * Tip: You can always select how and where you want to configure your middleware storage; could also be a cloud storage
+ */
 const storageDestinationAtRoot = "local/store/videos";
 const uploadSizeLimit = 100000000;
 
@@ -45,7 +49,7 @@ const videoUpload = multer({
         fileSize: uploadSizeLimit, //Optional
     },
     fileFilter(req, file, cb) {
-    // upload only mp4 and mkv format
+        // upload only mp4 and mkv format
         if (!file.originalname.match(/\.(3g2|3gp|3gpp|asf|avi|dat|divx|dv|f4v|flv|m2ts|m4v|mkv|mod|mov|mp4|mpe|mpeg|mpeg4|mpg|mts|nsv|ogm|ogv|qt|tod|ts|vob|wmv)$/i)) {
             return cb(new Error("Please upload a video that matches the format"));
         }
@@ -73,15 +77,19 @@ app.get("/", (req, res) => {
     res.render("index");
 });
 
-// Login route using FB OAuth
+/**
+ * Login route using FB OAuth
+ */
 app.get("/login", function (req, res) {
     res.redirect(
         `https://www.facebook.com/dialog/oauth?app_id=${APP_ID}&scope=${STRINGIFIED_SCOPES}&client_id=${APP_ID}&redirect_uri=${REDIRECT_URI}&response_type=code`
     );
 });
 
-// Callback route for handling FB OAuth user token
-// And reroute to '/pages'
+/**
+ * Callback route for handling FB OAuth user token
+ * And reroute to '/pages'
+ */
 app.get("/callback", async function (req, res) {
     const code = req.query.code;
     const uri = `https://graph.facebook.com/oauth/access_token?client_id=${APP_ID}&redirect_uri=${REDIRECT_URI}&client_secret=${API_SECRET}&code=${code}`;
@@ -96,7 +104,9 @@ app.get("/callback", async function (req, res) {
     }
 });
 
-// Pages route to retrieve FB OAuth page tokens
+/**
+ * Pages route to retrieve FB OAuth page tokens
+ */
 app.get("/pages", async function (req, res) {
     const uri = `https://graph.facebook.com/v13.0/me/accounts?access_token=${req.session.userToken}`;
     if (req.session.userToken) {
@@ -118,7 +128,9 @@ app.get("/pages", async function (req, res) {
     }
 });
 
-// Upload Start route to initiate upload
+/**
+ * Upload Start route to initiate upload
+ */
 app.post("/uploadReels", function (req, res) {
     const uploadSingleVideo = videoUpload.single("videoFile");
     uploadSingleVideo(req, res, async function (err) {
@@ -191,7 +203,9 @@ app.post("/uploadReels", function (req, res) {
     });
 });
 
-// Publish Reels on the Selected Page
+/**
+ * Publish Reels on the Selected Page
+ **/
 app.post("/publishReels", async function (req, res) {
     const enableRemixing = forceDisableRemix ? false : req.body.enableRemixing ? true : false;
     const { selectedPageID, pageToken, videoId, hasVerifiedConsentBeforePublishing } = req.session;
@@ -202,13 +216,20 @@ app.post("/publishReels", async function (req, res) {
         res.render("user_consent_modal");
     } else { // Publish Reel once consent has been verified
         const publishReelUrl = `https://graph.facebook.com/v13.0/${selectedPageID}/video_reels?upload_phase=finish&video_id=${videoId}&allow_video_remixing=${enableRemixing}&access_token=${pageToken}&video_state=PUBLISHED`;
+        const statusUri = `https://graph.facebook.com/v13.0/${videoId}/?fields=status&access_token=${pageToken}`;
         try {
+            // Check first if uploading phase is successfull, then publish
+            const isUploaded = await checkAsyncStatus(0, statusUri, "uploading_phase");
+            // Then Initiate Publishing Reel
             const publishResponse = await axios.post(publishReelUrl);
-            const isPublishSuccessful = publishResponse.data.success;
-            if (isPublishSuccessful) {
+            const hasInititatedPublishing = publishResponse.data.success;
+
+            Object.assign(req.session, { statusUri, videoId });
+            if(hasInititatedPublishing) {
                 res.render("upload_page", {
-                    published: true,
-                    message: `Video ID# ${videoId} Published Successfully !`,
+                    published: false,
+                    processing: true,
+                    message: `Video ID# ${videoId} has been processed successfully and is now Publishing. Please check status !!`,
                 });
             } else {
                 res.render("upload_page", {
@@ -225,6 +246,47 @@ app.post("/publishReels", async function (req, res) {
     }
 });
 
+/**
+ * [User Modifiable]
+ * Publishing a video goes through Processing phase where video specs are validated
+ * and the Publish phase where video is published and acknowledgement is sent back via status call.
+ * This is a basic implementation of how status is checked to confirm a video has been published or not,
+ * and errors are handled.
+ * Tips --> Client can customize this check status to happen asynchronously in the backend via Event Emitter
+ * or something similar
+ */
+app.post("/checkStatus", async function (req, res) {
+    const { statusUri, videoId } = req.session;
+    const statusResponse = await axios.get(statusUri);
+    let message, published=false, error=false, processing=false;
+
+    // This is a Sample how error message are collected and propagated to the UI
+    if(statusResponse.data.status.video_status == 'error') {
+        let errorMsgs;
+        if(statusResponse.data.status.processing_phase.errors) { // handling errors during processing video (non confirming videos)
+            errorMsgs = collectErrorMessagesFromArrayOfErrors(statusResponse.data.status.processing_phase.errors);
+            message = `[Processing Error] Video ID# ${videoId}: ${errorMsgs}`;
+            processing = false;
+        } else if(statusResponse.data.status.publishing_phase.errors) { // handling errors during publishing video
+            errorMsgs = collectErrorMessagesFromArrayOfErrors(statusResponse.data.status.processing_phase.errors);
+            message = `[Publishing Error] Video ID# ${videoId}: ${errorMsgs}`;
+            processing = true;
+        }
+        error = true;
+    } else {
+        if(statusResponse.data.status.publishing_phase.status == 'complete') {
+            message = `[Publish Status] Video ID# ${videoId} has Published Successfully !!`;
+            published = true;
+            processing = true
+        } else {
+            message = `[Publish Status] Video ID# ${videoId} is processing...`;
+            processing = true;
+        }
+    };
+
+    res.render("upload_page", { published, processing, error, message });
+});
+
 // Logout route to kill the session
 app.get("/logout", function (req, res) {
     if (req.session) {
@@ -239,6 +301,41 @@ app.get("/logout", function (req, res) {
         res.render("index", { response: "Token not stored in session" });
     }
 });
+
+/**
+ * [User Modifiable]
+ * Setting retries with exponential backoff,
+ * as async video upload may take a while in the backed to return success
+ * ts can be any appropriate number for timelapse
+**/
+const ts = 2;
+const delay = (retryCount) => new Promise(resolve => setTimeout(resolve, ts ** retryCount));
+
+/**
+ * [User Modifiable]
+ * Retrieves container status for the uploaded video, while its uploading in the backend asynchronously
+ * */
+const checkAsyncStatus = async(retryCount, checkStatusUri, phase) => {
+    try {
+        if (retryCount > 20) return false;
+        const response = await axios.get(checkStatusUri);
+        if(response.data.status[phase].status != "complete") {
+            await delay(retryCount);
+            return checkAsyncStatus(retryCount+1, checkStatusUri, phase);
+        }
+        return true;
+    } catch(e) {
+        throw e;
+    }
+}
+
+const collectErrorMessagesFromArrayOfErrors = (errors) => {
+    let errorMsgs = "";
+    errors.forEach(e => {
+        errorMsgs += e.message+"\n";
+    });
+    return errorMsgs
+}
 
 https
     .createServer({
