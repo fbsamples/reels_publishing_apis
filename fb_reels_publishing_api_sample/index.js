@@ -171,11 +171,15 @@ app.post("/uploadReels", function (req, res) {
 
                 // upload video
                 const uploadBinaryUri = `https://rupload.facebook.com/video-upload/v13.0/${videoId}`;
-                const uploadBinaryResponse = await axios.post(uploadBinaryUri, data, {
+                const uploadBinaryResponse = await axios({
+                    method: 'post',
+                    url: uploadBinaryUri,
+                    data: data,
+                    maxBodyLength: Infinity,
                     headers: {
                         Authorization: `OAuth ${pageToken}`,
                         offset: 0,
-                        file_size: size
+                        file_size: size,
                     },
                 });
                 const isUploadSuccessful = uploadBinaryResponse.data.success;
@@ -205,7 +209,7 @@ app.post("/uploadReels", function (req, res) {
 
 /**
  * Publish Reels on the Selected Page
- * Note that a successful publish request is an acknowledgement that the publish request has been received successfully 
+ * Note that a successful publish request is an acknowledgement that the publish request has been received successfully
  * and doesn't necessarily mean the video was published successfully.
  * In order to confirm that the video was published successfully, a status check request needs to be sent (see /checkStatus).
  **/
