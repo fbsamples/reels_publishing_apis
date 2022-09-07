@@ -35,7 +35,7 @@ Make sure the videos are in accordance with the guidelines below:
 ### Supported Video Formats
 We support the following formats for uploaded video/reels: 3g2, 3gp, 3gpp, asf, avi, dat, divx, dv, f4v, flv, m2ts, m4v, mkv, mod, mov, mp4, mpe, mpeg, mpeg4, mpg, mts, nsv, ogm, ogv, qt, tod, ts, vob, wmv.
 
-Included in this repo is a sample video (located /sample_media) to be used during the upload stage, feel free to use this video or content of your own that meets the requirements above.
+Included in this repo is a sample video (located /sample_media) to be used during the upload stage. Feel free to use this video or content of your own that meets the requirements above.
 
 ### Recommended Settings
 * File Type: MP4, MOV
