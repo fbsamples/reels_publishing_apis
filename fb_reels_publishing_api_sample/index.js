@@ -192,7 +192,7 @@ app.post("/uploadReels", function (req, res) {
                     res.render("upload_page", {
                         uploaded: true,
                         next: "publish",
-                        message: `Video ID# ${videoId} upload has been initiated successfully !`,
+                        message: `Video ID# ${videoId} upload has been initiated successfully! Add any optional parameters below and click publish.`,
                     });
                 } else {
                     res.render("upload_page", {

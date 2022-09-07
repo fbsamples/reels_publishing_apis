@@ -29,11 +29,14 @@ html
           |   #{message}
         if(next == "publish")
           fieldset
-            form(method='POST', action='/publishReels')
-              input(id='title-input' type='text' placeholder='title' name='title')
-              input(id='description-input' type='text' placeholder= 'description' name='description')
-              input(id='scheduled-publish-time-input' type='datetime-local' name='scheduledpublishtime')
-              <label type="text" for="scheduled-publish-time-input">Schedule Upload</label>
+            h3 Optional Parameters :
+            form(id='optional-parameter-form', method='POST', action='/publishReels')
+              input(class='optional-parameter-input' type='text' placeholder='title' name='title')
+              br
+              input(class='optional-parameter-input' type='text' placeholder= 'description' name='description')
+              br
+              <label type="text" for="publish-time">Schedule Upload: </label>
+              input(id='publish-time' class='optional-parameter-input' type='datetime-local' name='scheduledpublishtime')
               input(type='submit', name='publishReels', value='Publish', onclick="this.form.submit(); this.disabled = true;")
         button(onclick="location.href='/logout'") Log Out
       else if(!uploaded && error)
