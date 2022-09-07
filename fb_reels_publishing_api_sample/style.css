@@ -1,4 +1,4 @@
-/* 
+/*
 //  Copyright (c) Meta Platforms, Inc. and affiliates.
 //  All rights reserved.
 //  This source code is licensed under the license found in the
@@ -50,6 +50,7 @@ input[type='file']{
 input[type='text'] {
 	width: 500px;
 	height: 20px;
+	text-align:center;
 }
 
 label {
@@ -105,4 +106,12 @@ label {
 
 .closebtn:hover {
 	color: black;
+}
+
+#optional-parameter-form{
+	text-align:center;
+}
+
+.optional-parameter-input{
+	margin:3px;
 }
