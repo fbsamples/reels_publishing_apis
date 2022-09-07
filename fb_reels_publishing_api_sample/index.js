@@ -272,7 +272,7 @@ app.post("/checkStatus", async function (req, res) {
             message = `[Processing Error] Video ID# ${videoId}: ${errorMsgs}`;
             processing = false;
         } else if(statusResponse.data.status.publishing_phase.errors) { // handling errors during publishing video
-            errorMsgs = collectErrorMessagesFromArrayOfErrors(statusResponse.data.status.processing_phase.errors);
+            errorMsgs = collectErrorMessagesFromArrayOfErrors(statusResponse.data.status.publishing_phase.errors);
             message = `[Publishing Error] Video ID# ${videoId}: ${errorMsgs}`;
             processing = true;
         }
