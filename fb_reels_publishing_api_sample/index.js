@@ -13,6 +13,8 @@ const fs = require("fs");
 const path = require("path");
 const multer = require("multer");
 
+const convertToUnix = require('./utils.js')
+
 require("dotenv").config();
 
 // Read variables from environment
@@ -56,25 +58,6 @@ const videoUpload = multer({
         cb(undefined, true);
     },
 });
-
-function convertToUnix(raw_date){
-
-    const [dateComponents, timeComponents] = raw_date.split('T');
-
-    const [year, month, day] = dateComponents.split('-');
-    const [hours, minutes] = timeComponents.split(':');
-
-    console.log('date components:  ' + dateComponents)
-    console.log('time components:  ' + timeComponents)
-
-    console.log('month, day, year: ' + month + day + year)
-
-    const date = new Date(+year, month - 1, +day, +hours, +minutes);
-
-    console.log('your date: ' + date)
-
-    return Math.floor(date.getTime() / 1000)
-}
 
 app.use(express.static(path.join(__dirname, "./")));
 app.set("views", path.join(__dirname, "./"));
@@ -237,9 +220,7 @@ app.post("/publishReels", async function (req, res) {
 
     const enableRemixing = forceDisableRemix ? false : req.body.enableRemixing ? true : false;
     const { selectedPageID, pageToken, videoId, hasVerifiedConsentBeforePublishing } = req.session;
-    const title = req.body.title;
-    const description = req.body.description;
-    const scheduled_publish_time = convertToUnix(req.body.scheduledpublishtime) || null;
+    const { title, description } = req.body
 
     const basePublishReelsURI = `https://graph.facebook.com/v13.0/${selectedPageID}/video_reels?upload_phase=finish&video_id=${videoId}&title=${title}&description=${description}&allow_video_remixing=${enableRemixing}&access_token=${pageToken}`;
 
@@ -247,8 +228,9 @@ app.post("/publishReels", async function (req, res) {
     if(hasVerifiedConsentBeforePublishing === false && forceDisableRemix === false) {
         req.session.hasVerifiedConsentBeforePublishing = true;
         res.render("user_consent_modal");
-    } else if (scheduled_publish_time != null){ // Publish Reel once consent has been verified
+    } else if (req.body.scheduledpublishtime != ''){ // Publish Reel once consent has been verified
         try {
+            let scheduled_publish_time = convertToUnix(req.body.scheduledpublishtime);
             publishReelsUrl = basePublishReelsURI + `&scheduled_publish_time=${scheduled_publish_time}&video_state=SCHEDULED`;
             // Then Initiate Publishing Reel
             const publishResponse = await axios.post(publishReelsUrl);
