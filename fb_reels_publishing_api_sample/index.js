@@ -28,9 +28,6 @@ const SCOPES = [
 ];
 const STRINGIFIED_SCOPES = SCOPES.join("%2c");
 
-// For the alpha program, remix is turned off by default. Turn this flag back off when remix becomes available
-const forceDisableRemix = true;
-
 /**
  * [User Modifiable]
  * Multer is the intermediate file storage middleware for keeping the uploaded file locally.
@@ -217,20 +214,10 @@ app.post("/uploadReels", function (req, res) {
  **/
 
 app.post("/publishReels", async function (req, res) {
-
-    const enableRemixing = forceDisableRemix ? false : req.body.enableRemixing ? true : false;
     const { selectedPageID, pageToken, videoId, hasVerifiedConsentBeforePublishing } = req.session;
     const { title, description } = req.body
 
-
-    // If consent for enabling remixing has not been taken before, first render consent modal to take that
-    if(hasVerifiedConsentBeforePublishing === false && forceDisableRemix === false) {
-        req.session.hasVerifiedConsentBeforePublishing = true;
-        res.render("user_consent_modal");
-    }
-
-    // Publish Reel once consent has been verified
-    const basePublishReelsURI = `https://graph.facebook.com/v13.0/${selectedPageID}/video_reels?upload_phase=finish&video_id=${videoId}&title=${title}&description=${description}&allow_video_remixing=${enableRemixing}&access_token=${pageToken}`;
+    const basePublishReelsURI = `https://graph.facebook.com/v13.0/${selectedPageID}/video_reels?upload_phase=finish&video_id=${videoId}&title=${title}&description=${description}&access_token=${pageToken}`;
     if (req.body.scheduledpublishtime != ''){
         // If Reel is scheduled to be published at a future time
         const scheduled_publish_time = convertToUnix(req.body.scheduledpublishtime);
