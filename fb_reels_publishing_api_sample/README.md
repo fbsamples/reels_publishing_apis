@@ -10,6 +10,8 @@ In order to run the sample app you will need to install some required software, 
 
 You will need the following:
 
+* For your reference the Reels Publishing API documentation is located [here](https://developers.facebook.com/docs/video-api/guides/reels-publishing)
+
 * In order to run the app, you will need to update the code and add your Facebook Developer App Id. If you don't have an app, check out this [link](https://developers.facebook.com/docs/development/).
 
 * You will need [Facebook App Secret](https://developers.facebook.com/docs/development/create-an-app/app-dashboard/basic-settings#app-secret) for the Facebook App
@@ -35,6 +37,8 @@ Make sure the videos are in accordance with the guidelines below:
 ### Supported Video Formats
 We support the following formats for uploaded video/reels: 3g2, 3gp, 3gpp, asf, avi, dat, divx, dv, f4v, flv, m2ts, m4v, mkv, mod, mov, mp4, mpe, mpeg, mpeg4, mpg, mts, nsv, ogm, ogv, qt, tod, ts, vob, wmv.
 
+Included in this repo is a sample video (located /sample_media) to be used during the upload stage. Feel free to use this video or content of your own that meets the requirements above.
+
 ### Recommended Settings
 * File Type: MP4, MOV
 * Resolution: 1080x1920 or greater
@@ -42,9 +46,9 @@ We support the following formats for uploaded video/reels: 3g2, 3gp, 3gpp, asf, 
 
 ### Best Practices
 * Always make sure that videos to be uploaded meet the supported video requirements
-* Upload and publish requests are asynchronous. This means that a success response is a simple acknowledgement from the server and does not necessarily guarantee that the video was uploaded successfully. Make sure to implement a checking mechanism like polling to check the status of the video uploads. 
+* Upload and publish requests are asynchronous. This means that a success response is a simple acknowledgement from the server and does not necessarily guarantee that the video was uploaded successfully. Make sure to implement a checking mechanism like polling to check the status of the video uploads.
 * There are different sets of errors in each request. Make sure to handle the errors properly.
-* Note that there are various ways of FB login. This sample app uses a sever-side solution. Make sure to browse [all available options](https://developers.facebook.com/docs/facebook-login/overview) and choose the most optimal way for your implementation. 
+* Note that there are various ways of FB login. This sample app uses a sever-side solution. Make sure to browse [all available options](https://developers.facebook.com/docs/facebook-login/overview) and choose the most optimal way for your implementation.
 
 ## Running the project
 
