@@ -10,6 +10,8 @@ In order to run the sample app you will need to install some required software, 
 
 You will need the following:
 
+* For your reference the Reels Publishing API documentation is located [here](https://developers.facebook.com/docs/video-api/guides/reels-publishing)
+
 * In order to run the app, you will need to update the code and add your Facebook Developer App Id. If you don't have an app, check out this [link](https://developers.facebook.com/docs/development/).
 
 * You will need [Facebook App Secret](https://developers.facebook.com/docs/development/create-an-app/app-dashboard/basic-settings#app-secret) for the Facebook App
