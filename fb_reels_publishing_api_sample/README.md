@@ -49,15 +49,8 @@ We support the following formats for uploaded video/reels: 3g2, 3gp, 3gpp, asf, 
 ## Running the project
 
 * Run `npm install` in your terminal
-* Add your environment variables in the `.env` file at root location
-```bash
-HOST=localhost
-APP_ID=YOUR_APP_ID
-API_SECRET=YOUR_APP_SECRET
-REDIRECT_URI=https://localhost:8000/callback
-SESSION_SECRET=RANDOM_SESSION_SECRET_STRING
-PORT=8000
-```
+* Create a new file called `.env` and copy/paste all the environment variables from `.env.template`. Replace any environnment variables that have placeholders, such as APP_ID.
+
 * Create an OpenSSL Cert
     * To create an OpenSSL Cert for you local development environment, first, install mkcert if it's not already installed on your local machine using `brew install mkcert`
     * `mkcert localhost` - This will create a localhost pem file
