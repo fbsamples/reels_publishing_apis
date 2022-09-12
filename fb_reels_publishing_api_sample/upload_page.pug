@@ -47,6 +47,7 @@ html
         .alert
           span.closebtn(onclick="this.parentElement.style.display='none';") &times;
           |   #{message}
+        button(onclick="location.href='/pages'") Upload Another Video
         button(onclick="location.href='/logout'") Log Out
       else if(!published && processing)
         .alert
