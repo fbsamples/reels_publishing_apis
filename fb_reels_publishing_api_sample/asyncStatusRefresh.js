@@ -1,5 +1,3 @@
-
-
 /* onload call fetchStatus then based on response update ui accordingly*/
 const asyncInterval = setInterval(fetchStatus, 1000);
 
