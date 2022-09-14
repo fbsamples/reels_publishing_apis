@@ -1,10 +1,12 @@
 /* onload call fetchStatus then based on response update ui accordingly*/
-const asyncInterval = setInterval(fetchStatus, 1000);
+const asyncInterval = setInterval(fetchStatus, 3500);
 
-function fetchStatus() {
-  jQuery.get('/asyncStatus', function(data, status) {
-    updateStatus(data.status);
-    if (data.status == 'complete') {
+async function fetchStatus() {
+  await fetch('/asyncStatus')
+  .then(response => response.json())
+  .then(response => {
+    updateStatus(response.status);
+    if (response.status == 'complete') {
       clearInterval(asyncInterval);
       document.getElementById('check-status-button').click();
     }
