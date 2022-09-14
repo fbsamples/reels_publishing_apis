@@ -151,6 +151,7 @@ app.post("/uploadReels", function (req, res) {
                 res.render("upload_page", {
                     uploaded: false,
                     error: true,
+                    pages: req.session.pageData,
                     message: "No page has been selected",
                 });
             } else if (err) {
@@ -214,7 +215,6 @@ app.post("/uploadReels", function (req, res) {
                         });
                     }
                 } catch (error) {
-                    console.log(error)
                     res.render("index", {
                         error: `There was an error with the request: ${error}`,
                     });
