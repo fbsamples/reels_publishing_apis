@@ -35,7 +35,7 @@ const STRINGIFIED_SCOPES = SCOPES.join("%2c");
  * Tip: You can always select how and where you want to configure your middleware storage; could also be a cloud storage
  */
 const storageDestinationAtRoot = "local/store/videos";
-const uploadSizeLimit = 100000000000;
+const uploadSizeLimit = 100000000;
 
 const videoUpload = multer({
     storage: multer.diskStorage({
