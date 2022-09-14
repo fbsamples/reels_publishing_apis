@@ -22,7 +22,12 @@ html
                 input(type="radio" id=`page-${index}` name="pageID" value=page.id)
                 label(for=`page-${index}`) Page: #{page.name} - #{page.id}
           input(id='file-upload' type='file', name='videoFile')
+          br
+          b or
+          br
+          input(type="text" placeholder="Enter video url" name="videoUrl")
           input(type='submit', name='uploadReels', value='Upload Video', onclick="this.form.submit(); this.disabled = true;")
+
       if(uploaded)
         .alert
           span.closebtn(onclick="this.parentElement.style.display='none';") &times;
