@@ -12,9 +12,9 @@ You will need the following:
 
 * [nodeJS](https://nodejs.org/en/download/) or you can install via Homebrew(MacOS only) - `brew install node`
 
-* [mkcert](https://mkcert.org/?fbclid=IwAR0VT4oCt0wepEWmhW4ADRF1hv2is-CtR9fS53fOa0qjTk3JhzUuGBpp-VE) needs to be installed on your server to create the OpenSSL Certificate. If you're using Mac you can install it via Homebrew - `brew install mkcert`
+* [mkcert](https://mkcert.org/) needs to be installed on your server to create the OpenSSL Certificate. If you're using Mac you can install it via Homebrew - `brew install mkcert`
 
-* [Pug](https://pugjs.org/api/getting-started.html?fbclid=IwAR2EiHQOoAlHP1milNwijowTSk6VwO41Yg7FsPhfQgbFvYT2hWuPGQvqb0g) installed on your server to create the UI for the app
+* [Pug](https://pugjs.org/api/getting-started.html) installed on your server to create the UI for the app
 
 For simplicity, this sample guide assumes that you save every file at the root level of the app directory without any nested folder structures except for node modules.
 
