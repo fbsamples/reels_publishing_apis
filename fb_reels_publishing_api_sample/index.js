@@ -314,6 +314,22 @@ app.post("/checkStatus", async function (req, res) {
     res.render("upload_page", { published, processing, error, message });
 });
 
+app.get('/asyncStatus', async function(req, res) {
+  const {pageToken, videoId} = req.session;
+  const statusUri = `https://graph.facebook.com/v13.0/${videoId}/?fields=status&access_token=${pageToken}`;
+  let status = 'processing';
+
+  try {
+        const statusResponse = await axios.get(statusUri);
+        status = statusResponse.data.status.video_status;
+    }
+  catch (error){
+      res.render("upload_page", error)
+  }
+
+  res.send({status: status, video_id: videoId});
+});
+
 // Logout route to kill the session
 app.get("/logout", function (req, res) {
     if (req.session) {
