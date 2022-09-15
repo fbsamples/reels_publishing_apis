@@ -30,6 +30,10 @@ html
         if(next == "publish")
           fieldset
             h3 Optional Parameters :
+            form(action='/uploadThumbnail', method='post', enctype="multipart/form-data")
+              div
+                input(type='file', name='imageFile')
+                input(type='submit', name='imageFile', value='Upload Thumbnail')
             form(id='optional-parameter-form', method='POST', action='/publishReels')
               input(class='optional-parameter-input' type='text' placeholder='title' name='title')
               br

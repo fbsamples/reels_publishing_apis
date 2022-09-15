@@ -12,8 +12,7 @@ const https = require("https");
 const fs = require("fs");
 const path = require("path");
 const multer = require("multer");
-
-const convertToUnix = require('./utils.js')
+const convertToUnix = require('./utils.js');
 
 require("dotenv").config();
 
@@ -35,6 +34,7 @@ const STRINGIFIED_SCOPES = SCOPES.join("%2c");
  * Tip: You can always select how and where you want to configure your middleware storage; could also be a cloud storage
  */
 const storageDestinationAtRoot = "local/store/videos";
+const storageDestinationAtRootImage = "local/store/images";
 const uploadSizeLimit = 100000000;
 
 const videoUpload = multer({
@@ -56,11 +56,32 @@ const videoUpload = multer({
     },
 });
 
+const imageUpload = multer({
+    storage: multer.diskStorage({
+        destination: storageDestinationAtRootImage,
+        filename: (req, file, cb) => {
+            cb(null, file.fieldname + "_" + Date.now() + path.extname(file.originalname));
+        },
+    }),
+    limits:{
+        fileSize: uploadSizeLimit,
+    },
+    // fileFilter(req, file, cb) {
+    //     if (!file.originalname.match('([^\\s]+(\\.(?i)(jpe?g|png|gif|bmp))$)')) {
+    //         return cb(new Error("Please upload a video that matches the format"));
+    //     }
+    //     cb(undefined, true);
+    //}
+});
+
 app.use(express.static(path.join(__dirname, "./")));
+
 app.set("views", path.join(__dirname, "./"));
 app.set("view engine", "pug");
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
 app.use(
     session({
         secret: process.env.SESSION_SECRET,
@@ -215,7 +236,7 @@ app.post("/uploadReels", function (req, res) {
 
 app.post("/publishReels", async function (req, res) {
     const { selectedPageID, pageToken, videoId, hasVerifiedConsentBeforePublishing } = req.session;
-    const { title, description } = req.body
+    const { title, description } = req.body;
 
     const basePublishReelsURI = `https://graph.facebook.com/v13.0/${selectedPageID}/video_reels?upload_phase=finish&video_id=${videoId}&title=${title}&description=${description}&access_token=${pageToken}`;
     if (req.body.scheduledpublishtime != ''){
@@ -250,7 +271,92 @@ app.post("/publishReels", async function (req, res) {
             error: `There was an error with the request: ${error}`,
         });
     }
-})
+});
+
+/**
+ * Upload a thumbnail for particular video
+ */
+
+function uploadImage(req, res){
+    const uploadSingleImage = imageUpload.single("imageFile");
+    uploadSingleImage(req, res, async function(error){
+        if (error) {
+            console.log('error', error);
+            res.render("upload_page", {
+                published: false,
+                error: true,
+                message: error,
+            });
+        } else if(!req.file){
+            console.log('file missing', error);
+            res.render("upload_page", {
+                published: false,
+                error: true,
+                message: 'No File Selected',
+            });
+        }
+        console.log("res from inside", res);
+    });
+    console.log("res from func", res);
+}
+
+
+
+app.post("/uploadThumbnail" , imageUpload.single("imageFile"), async function (req, res) {
+    const { videoId, pageToken } = req.session;
+    //console.log("body", req.body);
+    console.log("---------------------------------");
+    const uploadThumbnail_url = `https://graph.facebook.com/v15.0/${videoId}/thumbnails`;
+    const filePath_1 = req.file.path;
+    //console.log("session", req.session);
+    console.log("path", filePath_1);
+
+    try {
+        const filePath = `${__dirname}/${filePath_1}`;
+        const data = fs.readFileSync(filePath);
+        const size = req.file.size;
+        const uploadThumbnailResponse = await axios.post({
+            params: {
+                source: data,
+            },
+            data: {
+                access_token: pageToken,
+            }
+        });
+        console.log(uploadThumbnailResponse.status);
+
+        const uploadThumbnailResponseState = uploadThumbnailResponse.data.success;
+
+        if (uploadThumbnailResponseState) {
+            const sourceImgUriResponse = await axios({
+                method: 'get',
+                url: `https://graph.facebook.com/v15.0/${videoId}/thumbnails`,
+                headers: {
+                    Authorization: `OAuth ${pageToken}`
+                },
+            });
+            console.log('uri response', sourceImgUriResponse);
+
+            const sourceImgUri = sourceImgUriResponse.data.data[0].uri;
+
+            res.render("upload_page", {
+                published: false,
+                processing: true,
+                message: `Thumbnail for ${videoId} has been uploaded`,
+                uri: sourceImgUri,
+            });
+        }
+    } catch (error) {
+        console.log(error);
+        res.render("upload_page", {
+            published: false,
+            processing: true,
+            error: true,
+            message: `There was an error with the request: ${error}`,
+        });
+    }
+});
+
 
 
 /**
@@ -315,7 +421,7 @@ const collectErrorMessagesFromArrayOfErrors = (errors) => {
     errors.forEach(e => {
         errorMsgs += e.message+"\n";
     });
-    return errorMsgs
+    return errorMsgs;
 }
 
 https
