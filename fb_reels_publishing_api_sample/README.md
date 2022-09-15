@@ -1,22 +1,18 @@
 # Facebook Reels Publishing APIs
 
-## Required software
-
-In order to run the sample app you will need to install some required software, as follows:
-
-- Node JS
-
 ## Before you start
 
 You will need the following:
 
 * For your reference the Reels Publishing API documentation is located [here](https://developers.facebook.com/docs/video-api/guides/reels-publishing)
 
-* In order to run the app, you will need to update the code and add your Facebook Developer App Id. If you don't have an app, check out this [link](https://developers.facebook.com/docs/development/).
+* In order to run the app, you will need to update the code and add your Facebook Developer App Id. If you don’t have an app, follow the guide [here](https://developers.facebook.com/docs/development/) to create your app first.
 
 * You will need [Facebook App Secret](https://developers.facebook.com/docs/development/create-an-app/app-dashboard/basic-settings#app-secret) for the Facebook App
 
-* [mkcert](https://mkcert.org/?fbclid=IwAR0VT4oCt0wepEWmhW4ADRF1hv2is-CtR9fS53fOa0qjTk3JhzUuGBpp-VE) needs to be installed on your server to create the OpenSSL Certificate
+* [nodeJS](https://nodejs.org/en/download/) or you can install via Homebrew(MacOS only) - `brew install node`
+
+* [mkcert](https://mkcert.org/?fbclid=IwAR0VT4oCt0wepEWmhW4ADRF1hv2is-CtR9fS53fOa0qjTk3JhzUuGBpp-VE) needs to be installed on your server to create the OpenSSL Certificate. If you're using Mac you can install it via Homebrew - `brew install mkcert`
 
 * [Pug](https://pugjs.org/api/getting-started.html?fbclid=IwAR2EiHQOoAlHP1milNwijowTSk6VwO41Yg7FsPhfQgbFvYT2hWuPGQvqb0g) installed on your server to create the UI for the app
 
@@ -29,7 +25,7 @@ Make sure the videos are in accordance with the guidelines below:
 |   Property        |   Min (or n/a)    |   Max (or n/a)    |
 |   ---------       |   -----------     |   ------------    |
 |   Resolution      |   540 x 960 (540p)|       n/a         |
-|   Aspect Ratio    |   9x16            |       9x16        |
+|   Aspect Ratio    |   9:16            |       9:16        |
 |   Frame Rate      |   30              |       n/a         |
 |   Duration        |   4 sec           |       60 sec      |
 |   File Size       |   n/a             |       n/a         |
