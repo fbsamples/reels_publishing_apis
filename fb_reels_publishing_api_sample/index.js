@@ -302,9 +302,7 @@ app.get('/asyncStatus', async function(req, res) {
 
   try {
         const statusResponse = await axios.get(statusUri);
-        if (statusResponse.data.status.processing_phase.video_status != 'not_started'){
-            status = statusResponse.data.status.publishing_phase.status;
-        }
+        status = statusResponse.data.status.video_status;
     }
   catch (error){
       res.render("upload_page", error)

@@ -6,7 +6,7 @@ async function fetchStatus() {
   .then(response => response.json())
   .then(response => {
     updateStatus(response.status);
-    if (response.status == 'complete') {
+    if (response.status == 'ready') {
       clearInterval(asyncInterval);
       document.getElementById('check-status-button').click();
     }
