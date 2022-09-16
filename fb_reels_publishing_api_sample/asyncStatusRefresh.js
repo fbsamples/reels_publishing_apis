@@ -1,3 +1,8 @@
+//  Copyright (c) Meta Platforms, Inc. and affiliates.
+//  All rights reserved.
+//  This source code is licensed under the license found in the
+//  LICENSE file in the root directory of this source tree.
+
 /* onload call fetchStatus then based on response update ui accordingly*/
 const asyncInterval = setInterval(fetchStatus, 3500);
 
