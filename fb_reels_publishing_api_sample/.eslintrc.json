@@ -1,0 +1,21 @@
+{
+    "env": {
+        "node": true,
+        "commonjs": true,
+        "es6": true
+    },
+    "plugins": ["prettier"],
+    "extends": "eslint:recommended",
+    "globals": {
+        "Atomics": "readonly",
+        "SharedArrayBuffer": "readonly"
+    },
+    "parserOptions": {
+        "ecmaVersion": 2018
+    },
+    "rules": {
+        "semi": ["error", "always"],
+        "no-console": "off",
+        "indent": 2
+    }
+  }

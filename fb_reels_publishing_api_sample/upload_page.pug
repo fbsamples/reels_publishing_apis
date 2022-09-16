@@ -1,0 +1,71 @@
+//  Copyright (c) Meta Platforms, Inc. and affiliates.
+//  All rights reserved.
+//  This source code is licensed under the license found in the
+//  LICENSE file in the root directory of this source tree.
+
+doctype
+html
+  head
+    title Facebook Reels Publishing API Sample App
+    link(rel='stylesheet', href='/style.css')
+  body
+    header
+      h1 Facebook Reels Publishing API Sample App
+    .canvas
+      - let pagesArr = pages ?? [];
+      if (pagesArr.length > 0)
+        form(action='/uploadReels', method='POST', enctype="multipart/form-data")
+          b Select a Page to upload video to
+          div(class='radio-group')
+            each page, index in pagesArr
+              div(class='radio-child')
+                input(type="radio" id=`page-${index}` name="pageID" value=page.id)
+                label(for=`page-${index}`) Page: #{page.name} - #{page.id}
+          input(id='file-upload' type='file', name='videoFile')
+          br
+          b or
+          br
+          input(type="text" placeholder="Enter video url" name="videoUrl")
+          input(type='submit', name='uploadReels', value='Upload Video', onclick="this.form.submit(); this.disabled = true;")
+
+      if(uploaded)
+        script(src="/utils.js")
+        .alert
+          span.closebtn(onclick="this.parentElement.style.display='none';") &times;
+          |   #{message}
+        if(next == "publish")
+          fieldset
+            h3 Optional Parameters :
+            form(id='optional-parameter-form', method='POST', action='/publishReels')
+              input(class='optional-parameter-input' type='text' placeholder='title' name='title')
+              br
+              input(class='optional-parameter-input' type='text' placeholder= 'description' name='description')
+              br
+              <label type="text" for="publish-time">Schedule Upload: </label>
+              input(id='publish-time' class='optional-parameter-input' type='datetime-local' name='scheduledpublishtime' onchange=`checkTimeDifference('publish-time')`)
+              input(type='submit', name='publishReels', value='Publish', onclick="this.form.submit(); this.disabled = true;")
+        button(onclick="location.href='/logout'") Log Out
+      else if(!uploaded && error)
+        .alert-error
+          span.closebtn(onclick="this.parentElement.style.display='none';") &times;
+          |   #{message}
+      else if(published)
+        .alert
+          span.closebtn(onclick="this.parentElement.style.display='none';") &times;
+          |   #{message}
+        button(onclick="location.href='/pages'") Upload Another Video
+        button(onclick="location.href='/logout'") Log Out
+      else if(!published && processing)
+        .alert
+          span.closebtn(onclick="this.parentElement.style.display='none';") &times;
+          | #{message}
+        div(class="progress" id="progress")
+          strong(class="status", id="status")
+        script(src="asyncStatusRefresh.js")
+        form(method='POST', action='/checkStatus')
+          input(id='check-status-button' type='submit', name='checkStatus', value='Check Status', onclick="this.form.submit(); this.disabled = true;")
+      else if(!published && error)
+        .alert-error
+          span.closebtn(onclick="this.parentElement.style.display='none';") &times;
+          |   #{message}
+        button(onclick="location.href='/logout'") Log Out
