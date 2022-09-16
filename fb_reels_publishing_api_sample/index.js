@@ -13,6 +13,7 @@ const fs = require("fs");
 const path = require("path");
 const multer = require("multer");
 const convertToUnix = require('./utils.js');
+const FormData = require('form-data');
 
 require("dotenv").config();
 
@@ -277,53 +278,26 @@ app.post("/publishReels", async function (req, res) {
  * Upload a thumbnail for particular video
  */
 
-function uploadImage(req, res){
-    const uploadSingleImage = imageUpload.single("imageFile");
-    uploadSingleImage(req, res, async function(error){
-        if (error) {
-            console.log('error', error);
-            res.render("upload_page", {
-                published: false,
-                error: true,
-                message: error,
-            });
-        } else if(!req.file){
-            console.log('file missing', error);
-            res.render("upload_page", {
-                published: false,
-                error: true,
-                message: 'No File Selected',
-            });
-        }
-        console.log("res from inside", res);
-    });
-    console.log("res from func", res);
-}
-
-
-
 app.post("/uploadThumbnail" , imageUpload.single("imageFile"), async function (req, res) {
     const { videoId, pageToken } = req.session;
     //console.log("body", req.body);
     console.log("---------------------------------");
-    const uploadThumbnail_url = `https://graph.facebook.com/v15.0/${videoId}/thumbnails`;
-    const filePath_1 = req.file.path;
+    const uploadThumbnail_url = `https://graph.facebook.com/${videoId}/thumbnails?access_token=${pageToken}`;
+    const reqFilePath = req.file.path;
     //console.log("session", req.session);
-    console.log("path", filePath_1);
 
     try {
-        const filePath = `${__dirname}/${filePath_1}`;
+        const filePath = `${__dirname}/${reqFilePath}`;
         const data = fs.readFileSync(filePath);
         const size = req.file.size;
-        const uploadThumbnailResponse = await axios.post({
+        const uploadThumbnailResponse = await axios({
+            url: uploadThumbnail_url,
+            method: 'POST',
             params: {
-                source: data,
+                source: data
             },
-            data: {
-                access_token: pageToken,
-            }
         });
-        console.log(uploadThumbnailResponse.status);
+        console.log('RESPONSE', uploadThumbnailResponse.status);
 
         const uploadThumbnailResponseState = uploadThumbnailResponse.data.success;
 
@@ -396,7 +370,7 @@ app.post("/checkStatus", async function (req, res) {
             message = `[Publish Status] Video ID# ${videoId} is processing...`;
             processing = true;
         }
-    };
+    }
 
     res.render("upload_page", { published, processing, error, message });
 });
