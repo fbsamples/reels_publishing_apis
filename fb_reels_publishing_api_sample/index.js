@@ -13,7 +13,7 @@ const fs = require("fs");
 const path = require("path");
 const multer = require("multer");
 
-const convertToUnix = require('./utils.js')
+const {convertToUnix, checkTimeDifference}  = require('./utils.js');
 
 require("dotenv").config();
 
