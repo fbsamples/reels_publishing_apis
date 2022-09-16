@@ -29,6 +29,7 @@ html
           input(type='submit', name='uploadReels', value='Upload Video', onclick="this.form.submit(); this.disabled = true;")
 
       if(uploaded)
+        script(src="/utils.js")
         .alert
           span.closebtn(onclick="this.parentElement.style.display='none';") &times;
           |   #{message}
