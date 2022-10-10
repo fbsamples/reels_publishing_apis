@@ -38,6 +38,10 @@ const SCOPES = [
 ];
 const STRINGIFIED_SCOPES = SCOPES.join("%2c");
 
+// add your video url here
+const yourVideoUrl = "https://static.videezy.com/system/resources/previews/000/032/259/original/MM008527___BLENDER_007___1080p___phantom.mp4";
+const yourCaption = "Test caption";
+
 app.use(express.static(path.join(__dirname, "./")));
 app.set("views", path.join(__dirname, "./"));
 app.set("view engine", "pug");
@@ -113,8 +117,6 @@ app.post("/uploadReels", async function (req, res) {
             const igUserId = igResponse.data.instagram_business_account.id;
 
             // Upload Reel Video
-            const yourVideoUrl = "https://static.videezy.com/system/resources/previews/000/032/259/original/MM008527___BLENDER_007___1080p___phantom.mp4";
-            const yourCaption = "Test caption"
             const uploadVideoUri = `https://graph.facebook.com/v14.0/${igUserId}/media?media_type=VIDEO&video_url=${yourVideoUrl}&caption=${yourCaption}&access_token=${req.session.userToken}`;
             const uploadResponse = await axios.post(uploadVideoUri);
             const containerId = uploadResponse.data.id;
