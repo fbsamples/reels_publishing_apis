@@ -13,6 +13,7 @@ const { default: axios } = require("axios");
 const https = require("https");
 const path = require("path");
 const fs = require("fs");
+const { isUploadSuccessful } = require("./utils");
 
 // Read variables from environment
 require("dotenv").config();
@@ -102,31 +103,36 @@ app.post("/uploadReels", async function (req, res) {
     const pageToken = req.session.pageData.filter((pd) => pd.id === selectedPageID)[0].access_token;
 
     // Now Retrieve the Instgram user ID associated with the selected page
-    const getInstagramAccountUri = `https://graph.facebook.com/v14.0/${selectedPageID}?fields=instagram_business_account&access_token=${pageToken}`;
+    const getInstagramAccountUri = `https://graph.facebook.com/v14.0/${selectedPageID}?fields=instagram_business_account&access_token=${req.session.userToken}`;
     const igResponse = await axios.get(getInstagramAccountUri);
     const hasIgBusinessAccount = igResponse.data.instagram_business_account ? true : false;
 
     // If there is a IG Business Account associated with the page
     if(hasIgBusinessAccount) {
-        const igUserId = igResponse.data.instagram_business_account.id;
-        // Upload Reel Video
-        const yourVideoUrl = "https://static.videezy.com/system/resources/previews/000/032/259/original/MM008527___BLENDER_007___1080p___phantom.mp4";
-        const yourCaption = "Test caption"
-        const uploadVideoUri = `https://graph.facebook.com/v14.0/${igUserId}/media?media_type=VIDEO&video_url=${yourVideoUrl}&caption=${yourCaption}&access_token=${pageToken}`;
-        const uploadResponse = await axios.post(uploadVideoUri);
-        const containerId = uploadResponse.data.id;
+        try {
+            const igUserId = igResponse.data.instagram_business_account.id;
 
-        // add variables to the session
-        Object.assign(req.session, { igUserId, containerId, pageToken });
+            // Upload Reel Video
+            const yourVideoUrl = "https://static.videezy.com/system/resources/previews/000/032/259/original/MM008527___BLENDER_007___1080p___phantom.mp4";
+            const yourCaption = "Test caption"
+            const uploadVideoUri = `https://graph.facebook.com/v14.0/${igUserId}/media?media_type=VIDEO&video_url=${yourVideoUrl}&caption=${yourCaption}&access_token=${req.session.userToken}`;
+            const uploadResponse = await axios.post(uploadVideoUri);
+            const containerId = uploadResponse.data.id;
 
-        // Render Upload Success
-        res.render("upload_page", {
-            uploaded: true,
-            igUserId,
-            containerId,
-            pages: req.session.pageData,
-            message: `Reel uploaded successfully on IG UserID #${igUserId} at Container ID #${containerId}. You can Publish now.`
-        });
+            // add variables to the session
+            Object.assign(req.session, { igUserId, containerId, pageToken });
+
+            // Render Upload Success
+            res.render("upload_page", {
+                uploaded: true,
+                igUserId,
+                containerId,
+                pages: req.session.pageData,
+                message: `Reel uploaded successfully on IG UserID #${igUserId} at Container ID #${containerId}. You can Publish now.`
+            });
+        } catch(e) {
+            console.log("ERROR", e)
+        }
     } else { // Error - No IG Account found
         res.render("upload_page", {
             uploaded: false,
@@ -142,17 +148,17 @@ app.post("/publishReels", async function (req, res) {
 
     // Upload happens asynchronously in the backend,
     // so you need to check upload status before you Publish
-    const checkStatusUri = `https://graph.facebook.com/v14.0/${containerId}?fields=status_code&access_token=${pageToken}`;
-    const isUploaded = await getUploadStatus(0, checkStatusUri);
+    const checkStatusUri = `https://graph.facebook.com/v14.0/${containerId}?fields=status_code&access_token=${req.session.userToken}`;
+    const isUploaded = await isUploadSuccessful(0, checkStatusUri);
 
     // When uploaded successfully, publish the video
     if(isUploaded) {
-        const publishVideoUri = `https://graph.facebook.com/v14.0/${igUserId}/media_publish?creation_id=${containerId}&access_token=${pageToken}`;
+        const publishVideoUri = `https://graph.facebook.com/v14.0/${igUserId}/media_publish?creation_id=${containerId}&access_token=${req.session.userToken}`;
         const publishResponse = await axios.post(publishVideoUri);
         const publishedMediaId = publishResponse.data.id;
 
         // Get PermaLink to redirect the user to the post
-        const permaLinkUri = `https://graph.facebook.com/v14.0/${publishedMediaId}?fields=permalink&access_token=${pageToken}`
+        const permaLinkUri = `https://graph.facebook.com/v14.0/${publishedMediaId}?fields=permalink&access_token=${req.session.userToken}`
         const permalinkResponse = await axios.get(permaLinkUri);
         const permalink = permalinkResponse.data.permalink;
 
@@ -190,27 +196,6 @@ app.get("/logout", function (req, res) {
         res.render("index", { response: "Token not stored in session" });
     }
 });
-
-// Setting retries with exponential backoff,
-// as async video upload may take a while in the backed to return success
-// ts can be any appropriate number for timelapse
-const ts = 3;
-const delay = (retryCount) => new Promise(resolve => setTimeout(resolve, ts ** retryCount));
-
-// Retrieves container status for the uploaded video, while its uploading in the backend asynchronously
-const getUploadStatus = async(retryCount, checkStatusUri) => {
-    try {
-        if (retryCount > 10) return false;
-        const response = await axios.get(checkStatusUri);
-        if(response.data.status_code != "FINISHED") {
-            await delay(retryCount);
-            return getUploadStatus(retryCount+1, checkStatusUri);
-        }
-        return true;
-    } catch(e) {
-        throw e;
-    }
-}
 
 https
     .createServer({
