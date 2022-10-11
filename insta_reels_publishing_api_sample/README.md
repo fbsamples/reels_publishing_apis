@@ -12,7 +12,9 @@ You will need the following:
 
 * In order to run the app, you will need to update the code and add your Facebook Developer App Id. If you don't have an app, check out this [link](https://developers.facebook.com/docs/development/).
 
-* You will need [Facebook App Secret](https://developers.facebook.com/docs/development/create-an-app/app-dashboard/basic-settings#app-secret) for the Facebook App
+* You will need [Facebook App Secret](https://developers.facebook.com/docs/development/create-an-app/app-dashboard/basic-settings#app-secret) for the Facebook App.
+
+* IG Content Publishing API is only available to Creator or Business accounts -- see [Set Up Instagram Accounts With Pages](https://developers.facebook.com/docs/instagram/ads-api/guides/pages-ig-account#via_page). And you need to make sure your Creator/Business IG account is connected to the Facebook Page. If not, follow the instructions here - [Add or remove an Instagram account from your Page](https://www.facebook.com/help/1148909221857370)
 
 * [mkcert](https://mkcert.org/?fbclid=IwAR0VT4oCt0wepEWmhW4ADRF1hv2is-CtR9fS53fOa0qjTk3JhzUuGBpp-VE) needs to be installed on your server to create the OpenSSL Certificate
 
