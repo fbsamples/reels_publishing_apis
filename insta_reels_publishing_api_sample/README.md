@@ -45,3 +45,29 @@ Make sure the videos are in accordance with the guidelines below:
 ## Example Video URLs for testing:
 * https://static.videezy.com/system/resources/previews/000/014/045/original/30_seconds_digital_clock_display_of_sixteen_segments.mp4
 * https://static.videezy.com/system/resources/previews/000/032/359/original/MM008645___BOUNCING_FRUIT_009___1080p___phantom.mp4
+
+### Best Practices
+* Always make sure that videos to be uploaded meet the supported video requirements
+* Upload and publish requests are asynchronous. This means that a success response is a simple acknowledgement from the server and does not necessarily guarantee that the video was uploaded successfully.
+    * Make sure to implement a checking mechanism like polling to check the status of the video uploads. You can find one method implemented in the sample app by the name `isUploadSuccessful`.
+    * You need to wait till the upload is successful before you can execute the `/publish`
+    * An example of wait is shown in the `isUploadSuccessful`, which executes retries every 3 second, for a total of 90second wait period. If it exceeds that, it fails. You can handle this differently
+* There are different sets of errors in each request. Make sure to handle the errors properly.
+* Note that there are various ways of FB login. This sample app uses a sever-side solution. Make sure to browse [all available options](https://developers.facebook.com/docs/facebook-login/overview) and choose the most optimal way for your implementation.
+
+## Running the project
+
+* Run `npm install` in your terminal
+* Create a new file called `.env` and copy/paste all the environment variables from `.env.template`. Replace any environnment variables that have placeholders, such as APP_ID.
+
+* Create an OpenSSL Cert using `mkcert`
+    * To create an OpenSSL Cert for you local development environment, first, install mkcert if it's not already installed on your local machine using `brew install mkcert`
+    * `mkcert localhost` - This will create a localhost pem file
+    * You will see `localhost.pem` and `localhost-key.pem `files generated.
+
+* Running the Sample App
+    * `npm start`
+    * Once the sample app starts running, go to https://localhost:8000 to test the workflow.
+
+## License
+Reels Publishing APIs is Meta Platform Policy licensed, as found in the LICENSE file.
