@@ -29,18 +29,14 @@ const {
 const SCOPES = [
     "pages_read_engagement",
     "pages_show_list",
-    "pages_manage_posts",
     "instagram_basic",
-    "instagram_manage_comments",
-    "instagram_content_publish",
-    "ads_management",
-    "business_management"
+    "instagram_content_publish"
 ];
 const STRINGIFIED_SCOPES = SCOPES.join("%2c");
 
 // add your video url here
 const yourVideoUrl = "https://static.videezy.com/system/resources/previews/000/032/259/original/MM008527___BLENDER_007___1080p___phantom.mp4";
-const yourCaption = "Test caption";
+const yourCaption = "Hello world";
 
 app.use(express.static(path.join(__dirname, "./")));
 app.set("views", path.join(__dirname, "./"));
@@ -106,43 +102,58 @@ app.post("/uploadReels", async function (req, res) {
     const selectedPageID = req.body.pageID;
     const pageToken = req.session.pageData.filter((pd) => pd.id === selectedPageID)[0].access_token;
 
-    // Now Retrieve the Instgram user ID associated with the selected page
-    const getInstagramAccountUri = `https://graph.facebook.com/v14.0/${selectedPageID}?fields=instagram_business_account&access_token=${req.session.userToken}`;
-    const igResponse = await axios.get(getInstagramAccountUri);
-    const hasIgBusinessAccount = igResponse.data.instagram_business_account ? true : false;
+    try {
+         // Now Retrieve the Instgram user ID associated with the selected page
+        const getInstagramAccountUri = `https://graph.facebook.com/v14.0/${selectedPageID}?fields=instagram_business_account&access_token=${req.session.userToken}`;
+        const igResponse = await axios.get(getInstagramAccountUri);
+        const hasIgBusinessAccount = igResponse.data.instagram_business_account ? true : false;
 
-    // If there is a IG Business Account associated with the page
-    if(hasIgBusinessAccount) {
-        try {
-            const igUserId = igResponse.data.instagram_business_account.id;
+        // If there is a IG Business Account associated with the page
+        if(hasIgBusinessAccount) {
+            try {
+                const igUserId = igResponse.data.instagram_business_account.id;
 
-            // Upload Reel Video
-            const uploadVideoUri = `https://graph.facebook.com/v14.0/${igUserId}/media?media_type=VIDEO&video_url=${yourVideoUrl}&caption=${yourCaption}&access_token=${req.session.userToken}`;
-            const uploadResponse = await axios.post(uploadVideoUri);
-            const containerId = uploadResponse.data.id;
+                // Upload Reel Video
+                const uploadVideoUri = `https://graph.facebook.com/v14.0/${igUserId}/media?media_type=REELS&video_url=${yourVideoUrl}&caption=${yourCaption}&access_token=${req.session.userToken}`;
+                const uploadResponse = await axios.post(uploadVideoUri);
+                const containerId = uploadResponse.data.id;
 
-            // add variables to the session
-            Object.assign(req.session, { igUserId, containerId, pageToken });
+                // add variables to the session
+                Object.assign(req.session, { igUserId, containerId, pageToken });
 
-            // Render Upload Success
+                // Render Upload Success
+                res.render("upload_page", {
+                    uploaded: true,
+                    igUserId,
+                    containerId,
+                    pages: req.session.pageData,
+                    message: `Reel uploaded successfully on IG UserID #${igUserId} at Container ID #${containerId}. You can Publish now.`
+                });
+            } catch(e) {
+                res.render("upload_page", {
+                    uploaded: false,
+                    error: true,
+                    pages: req.session.pageData,
+                    message: `Error during upload. [Selected page id - ${selectedPageID}, IG User ID - ${igUserId}`
+                });
+            }
+        } else { // Error - No IG Account found
             res.render("upload_page", {
-                uploaded: true,
-                igUserId,
-                containerId,
+                uploaded: false,
+                error: true,
                 pages: req.session.pageData,
-                message: `Reel uploaded successfully on IG UserID #${igUserId} at Container ID #${containerId}. You can Publish now.`
+                message: "No Instagram Business Account associated with the page!"
             });
-        } catch(e) {
-            console.log("ERROR", e)
         }
-    } else { // Error - No IG Account found
+    } catch(e) {
         res.render("upload_page", {
             uploaded: false,
             error: true,
             pages: req.session.pageData,
-            message: "No Instagram Business Account associated with the page!"
+            message: `Error in getting IG account details for the selected page id - ${selectedPageID}`
         });
     }
+
 });
 
 app.post("/publishReels", async function (req, res) {
