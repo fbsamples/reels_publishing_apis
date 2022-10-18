@@ -226,6 +226,53 @@ app.post("/uploadReels", function (req, res) {
 });
 
 /**
+ * List Uploaded Reels of the Selected Page
+ * If No page is selected, stay on the Upload Page and display the error
+ * Else, display all relevant reels of that were previously uploaded for the selected page
+ */
+app.post("/listUploadedVideos", async function(req, res) {
+    // Access all eligible pages for the account
+    const uri = `https://graph.facebook.com/v13.0/me/accounts?access_token=${req.session.userToken}`;
+
+    if (req.session.userToken) {
+        try {
+            const selectedPageID = req.body.videoReelsPageId;
+
+            const response = await axios.get(uri);
+            req.session.pageData = response.data.data;
+
+            if(!selectedPageID) {
+                // page not selected
+                res.render("upload_page", {
+                    uploaded: false,
+                    error: true,
+                    pages: req.session.pageData,
+                    message: "No page has been selected",
+                });
+            }
+            else {
+                // Retrieve Page Access token corresponding to the selected page
+                const pageToken = req.session.pageData.filter((pd) => pd.id === selectedPageID)[0].access_token;
+                const videoUri = `https://graph.facebook.com/v13.0/${selectedPageID}/video_reels/?&access_token=${pageToken}`;
+
+                const video_response = await axios.get(videoUri);
+                const videos_list = video_response.data.data;
+
+                // Render the Upload page, but now send back the list of past reels of the selected page
+                res.render("upload_page", {
+                    uploaded: false,
+                    error: false,
+                    pages: req.session.pageData,
+                    videos: videos_list,
+                });
+            }
+        } catch (error) {
+            res.render("index", { error: "You need to login first"})
+        }
+    }
+});
+
+/**
  * Publish Reels on the Selected Page
  * Note that a successful publish request is an acknowledgement that the publish request has been received successfully
  * and doesn't necessarily mean the video was published successfully.
