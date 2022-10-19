@@ -255,7 +255,7 @@ app.post("/listUploadedVideos", async function(req, res) {
                 } else if (selectedPageID && !videoFile && !videoUrl) {
                     // Retrieve Page Access token corresponding to the selected page
                     const pageToken = req.session.pageData.filter((pd) => pd.id === selectedPageID)[0].access_token;
-                    const videoUri = `https://graph.facebook.com/v13.0/${selectedPageID}/video_reels/?&access_token=${pageToken}`;
+                    const videoUri = `https://graph.facebook.com/v13.0/${selectedPageID}/video_reels/?limit=5&access_token=${pageToken}`;
 
                     const video_response = await axios.get(videoUri);
                     const videos_list = video_response.data.data;
@@ -268,6 +268,12 @@ app.post("/listUploadedVideos", async function(req, res) {
                             message: `No video IDs found associated with the page ${selectedPageID}`,
                         });
                     } else {
+                        // Convert UTC time to user's local time and amend the list
+                        videos_list.forEach((value, index, self) => {
+                            if (value['updated_time']) {
+                                self[index]['updated_time'] = (new Date(value['updated_time'])).toLocaleString();
+                            }
+                        })
                         // Render the Upload page, but now send back the list of past reels of the selected page
                         res.render("upload_page", {
                             uploaded: false,

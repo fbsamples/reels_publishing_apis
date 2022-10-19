@@ -31,13 +31,14 @@ html
 
       if(videos)
         fieldset
+          h3 Five Last Created Videos of Page
           - let videosArr = videos ?? [];
           if (videosArr.length > 0)
             table(class="table")
               tr
                 th Video ID
                 th Video Description
-                th Updated Time
+                th Last Updated Time
               each video, index in videosArr
                 tr
                   td #{video.id}
