@@ -27,30 +27,22 @@ html
           br
           input(type="text" placeholder="Enter video url" name="videoUrl")
           input(type='submit', name='uploadReels', value='Upload Video', onclick="this.form.submit(); this.disabled = true;")
+          input(type='submit', formaction='/listUploadedVideos', name='listUploadedVideos', value='Show Video Reels', onclick="this.form.enctype='application/x-www-form-urlencoded'")
 
-      fieldset
-        form(action='/listUploadedVideos', method='POST', enctype="application/x-www-form-urlencoded")
-          b Select a Page to Show all past reels
-          div(class='radio-group')
-            each page, index in pagesArr
-              div(class='radio-child')
-                input(type="radio" id=`page-${index}-reels` name="videoReelsPageId" value=page.id)
-                label(for=`page-${index}-reels`) Page: #{page.name} - #{page.id}
-          input(type='submit', name='listUploadedVideos', value='Show Video Reels', onclick="this.form.submit(); this.disabled = true;")
-
-        if(videos)
-            - let videosArr = videos ?? [];
-            if (videosArr.length > 0)
-              table(class="table table-dark")
+      if(videos)
+        fieldset
+          - let videosArr = videos ?? [];
+          if (videosArr.length > 0)
+            table(class="table")
+              tr
+                th Video ID
+                th Video Description
+                th Updated Time
+              each video, index in videosArr
                 tr
-                  th Video ID
-                  th Video Description
-                  th Updated Time
-                each video, index in videosArr
-                  tr
-                    td #{video.id}
-                    td #{video.description}
-                    td #{video.updated_time}
+                  td #{video.id}
+                  td #{video.description}
+                  td #{video.updated_time}
 
       if(uploaded)
         script(src="/utils.js")

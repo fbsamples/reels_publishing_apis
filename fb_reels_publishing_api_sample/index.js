@@ -236,38 +236,48 @@ app.post("/listUploadedVideos", async function(req, res) {
 
     if (req.session.userToken) {
         try {
-            const selectedPageID = req.body.videoReelsPageId;
-
             const response = await axios.get(uri);
             req.session.pageData = response.data.data;
 
-            if(!selectedPageID) {
-                // page not selected
+            const selectedPageID = req.body.pageID;
+            const videoUrl = req.body.videoUrl;
+            const videoFile = req.file;
+
+            try {
+                if(!selectedPageID) {
+                    // page not selected
+                    res.render("upload_page", {
+                        uploaded: false,
+                        error: true,
+                        pages: req.session.pageData,
+                        message: "No page has been selected",
+                    });
+                } else if (selectedPageID && !videoFile && !videoUrl) {
+                    // Retrieve Page Access token corresponding to the selected page
+                    const pageToken = req.session.pageData.filter((pd) => pd.id === selectedPageID)[0].access_token;
+                    const videoUri = `https://graph.facebook.com/v13.0/${selectedPageID}/video_reels/?&access_token=${pageToken}`;
+
+                    const video_response = await axios.get(videoUri);
+                    const videos_list = video_response.data.data;
+
+                    // Render the Upload page, but now send back the list of past reels of the selected page
+                    res.render("upload_page", {
+                        uploaded: false,
+                        error: false,
+                        pages: req.session.pageData,
+                        videos: videos_list,
+                    });
+                }
+            } catch(error) {
                 res.render("upload_page", {
                     uploaded: false,
                     error: true,
                     pages: req.session.pageData,
-                    message: "No page has been selected",
-                });
-            }
-            else {
-                // Retrieve Page Access token corresponding to the selected page
-                const pageToken = req.session.pageData.filter((pd) => pd.id === selectedPageID)[0].access_token;
-                const videoUri = `https://graph.facebook.com/v13.0/${selectedPageID}/video_reels/?&access_token=${pageToken}`;
-
-                const video_response = await axios.get(videoUri);
-                const videos_list = video_response.data.data;
-
-                // Render the Upload page, but now send back the list of past reels of the selected page
-                res.render("upload_page", {
-                    uploaded: false,
-                    error: false,
-                    pages: req.session.pageData,
-                    videos: videos_list,
+                    message: error,
                 });
             }
         } catch (error) {
-            res.render("index", { error: "You need to login first"})
+            res.render("index", { error: "You need to login first"});
         }
     }
 });
