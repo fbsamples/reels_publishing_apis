@@ -260,13 +260,22 @@ app.post("/listUploadedVideos", async function(req, res) {
                     const video_response = await axios.get(videoUri);
                     const videos_list = video_response.data.data;
 
-                    // Render the Upload page, but now send back the list of past reels of the selected page
-                    res.render("upload_page", {
-                        uploaded: false,
-                        error: false,
-                        pages: req.session.pageData,
-                        videos: videos_list,
-                    });
+                    if (videos_list.length == 0) {
+                        res.render("upload_page", {
+                            uploaded: false,
+                            error: true,
+                            pages: req.session.pageData,
+                            message: `No video IDs found associated with the page ${selectedPageID}`,
+                        });
+                    } else {
+                        // Render the Upload page, but now send back the list of past reels of the selected page
+                        res.render("upload_page", {
+                            uploaded: false,
+                            error: false,
+                            pages: req.session.pageData,
+                            videos: videos_list,
+                        });
+                    }
                 }
             } catch(error) {
                 res.render("upload_page", {
