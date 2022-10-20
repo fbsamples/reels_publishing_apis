@@ -115,3 +115,25 @@ label {
 .optional-parameter-input{
 	margin:3px;
 }
+
+table {
+	margin-left: auto;
+	margin-right: auto;
+	border: 1px solid black;
+	table-layout: auto;
+	width: 100%;
+}
+
+th, td {
+	padding: 10px;
+	text-align: left;
+	border: 1px solid black;
+}
+
+th {
+	padding-top: 12px;
+	padding-bottom: 12px;
+	text-align: left;
+	background-color: #2196F3;
+	color: white;
+}
