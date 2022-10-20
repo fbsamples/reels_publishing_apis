@@ -27,7 +27,7 @@ html
           br
           input(type="text" placeholder="Enter video url" name="videoUrl")
           input(type='submit', name='uploadReels', value='Upload Video', onclick="this.form.submit(); this.disabled = true;")
-          input(type='submit', formaction='/listUploadedVideos', name='listUploadedVideos', value='Show Video Reels', onclick="this.form.enctype='application/x-www-form-urlencoded'")
+          input(type='submit', name='listUploadedVideos', value='Show Video Reels', formaction='/listUploadedVideos', formmethod='GET', formenctype='application/x-www-form-urlencoded')
 
       if(videos)
         fieldset

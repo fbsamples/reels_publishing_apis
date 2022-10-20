@@ -230,7 +230,7 @@ app.post("/uploadReels", function (req, res) {
  * If No page is selected, stay on the Upload Page and display the error
  * Else, display all relevant reels of that were previously uploaded for the selected page
  */
-app.post("/listUploadedVideos", async function(req, res) {
+app.get("/listUploadedVideos", async function(req, res) {
     // Access all eligible pages for the account
     const uri = `https://graph.facebook.com/v13.0/me/accounts?access_token=${req.session.userToken}`;
 
@@ -239,9 +239,9 @@ app.post("/listUploadedVideos", async function(req, res) {
             const response = await axios.get(uri);
             req.session.pageData = response.data.data;
 
-            const selectedPageID = req.body.pageID;
-            const videoUrl = req.body.videoUrl;
-            const videoFile = req.file;
+            const selectedPageID = req.query.pageID;
+            const videoUrl = req.query.videoUrl;
+            const videoFile = req.query.videoFile;
 
             try {
                 if(!selectedPageID) {
