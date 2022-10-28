@@ -26,21 +26,20 @@ You will need the following:
 
 For simplicity, this sample guide assumes that you save every file at the root level of the app directory without any nested folder structures except for node modules.
 
-## Video Requirements for Publishing
+## [Reels Requirements for Publishing](https://developers.facebook.com/docs/instagram-api/reference/ig-user/media#creating)
 Make sure the videos are in accordance with the guidelines below:
 
-* **Container**: MOV or MP4 (MPEG-4 Part 14), no edit lists, moov atom at the front of the file.
-* **Audio codec**: AAC, 48khz sample rate maximum, 1 or 2 channels (mono or stereo).
-* **Video codec**: HEVC or H264, progressive scan, closed GOP, 4:2:0 chroma subsampling.
-* **Frame rate**: 23-60 FPS.
-* **Picture size**:
-    * Maximum columns (horizontal pixels): 1920
-    * Minimum aspect ratio [cols / rows]: 4 / 5
-    * Maximum aspect ratio [cols / rows]: 16 / 9
-* **Video bitrate**: VBR, 5Mbps maximum
-* **Audio bitrate**: 128kbps
-* **Duration**: 60 seconds maximum, 3 seconds minimum
-* **File size**: 100MB maximum
+* Container: MOV or MP4 (MPEG-4 Part 14), no edit lists, moov atom at the front of the file.
+* Audio codec: AAC, 48khz sample rate maximum, 1 or 2 channels (mono or stereo).
+* Video codec: HEVC or H264, progressive scan, closed GOP, 4:2:0 chroma subsampling.
+* Frame rate: 23-60 FPS.
+* Picture size:
+* Maximum columns (horizontal pixels): 1920
+* Required aspect ratio is between 0.01:1 and 10:1 but we recommend 9:16 to avoid cropping or blank spaces.
+* Video bitrate: VBR, 25Mbps maximum
+* Audio bitrate: 128kbps
+* Duration: 15 mins maximum, 3 seconds minimum
+* File size: 1GB maximum
 
 ## Example Video URLs for testing:
 * https://static.videezy.com/system/resources/previews/000/014/045/original/30_seconds_digital_clock_display_of_sixteen_segments.mp4

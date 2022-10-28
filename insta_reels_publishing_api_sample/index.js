@@ -100,26 +100,23 @@ app.get("/pages", async function (req, res) {
 
 app.post("/uploadReels", async function (req, res) {
     const selectedPageID = req.body.pageID;
-    const pageToken = req.session.pageData.filter((pd) => pd.id === selectedPageID)[0].access_token;
-
     try {
          // Now Retrieve the Instgram user ID associated with the selected page
         const getInstagramAccountUri = `https://graph.facebook.com/v14.0/${selectedPageID}?fields=instagram_business_account&access_token=${req.session.userToken}`;
         const igResponse = await axios.get(getInstagramAccountUri);
         const hasIgBusinessAccount = igResponse.data.instagram_business_account ? true : false;
+        const igUserId = igResponse.data.instagram_business_account.id;
+        const uploadVideoUri = `https://graph.facebook.com/v14.0/${igUserId}/media?media_type=REELS&video_url=${yourVideoUrl}&caption=${yourCaption}&access_token=${req.session.userToken}`;
 
         // If there is a IG Business Account associated with the page
         if(hasIgBusinessAccount) {
             try {
-                const igUserId = igResponse.data.instagram_business_account.id;
-
                 // Upload Reel Video
-                const uploadVideoUri = `https://graph.facebook.com/v14.0/${igUserId}/media?media_type=REELS&video_url=${yourVideoUrl}&caption=${yourCaption}&access_token=${req.session.userToken}`;
                 const uploadResponse = await axios.post(uploadVideoUri);
                 const containerId = uploadResponse.data.id;
 
                 // add variables to the session
-                Object.assign(req.session, { igUserId, containerId, pageToken });
+                Object.assign(req.session, { igUserId, containerId });
 
                 // Render Upload Success
                 res.render("upload_page", {
@@ -153,11 +150,10 @@ app.post("/uploadReels", async function (req, res) {
             message: `Error in getting IG account details for the selected page id - ${selectedPageID}`
         });
     }
-
 });
 
 app.post("/publishReels", async function (req, res) {
-    const { igUserId, containerId, pageToken } = req.session;
+    const { igUserId, containerId } = req.session;
 
     // Upload happens asynchronously in the backend,
     // so you need to check upload status before you Publish
