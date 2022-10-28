@@ -27,6 +27,23 @@ html
           br
           input(type="text" placeholder="Enter video url" name="videoUrl")
           input(type='submit', name='uploadReels', value='Upload Video', onclick="this.form.submit(); this.disabled = true;")
+          input(type='submit', name='listUploadedVideos', value='Show Video Reels', formaction='/listUploadedVideos', formmethod='GET', formenctype='application/x-www-form-urlencoded')
+
+      if(videos)
+        fieldset
+          h3 Five Last Created Videos of Page
+          - let videosArr = videos ?? [];
+          if (videosArr.length > 0)
+            table(class="table")
+              tr
+                th Video ID
+                th Video Description
+                th Last Updated Time
+              each video, index in videosArr
+                tr
+                  td #{video.id}
+                  td #{video.description}
+                  td #{video.updated_time}
 
       if(uploaded)
         script(src="/utils.js")
