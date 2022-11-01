@@ -22,6 +22,8 @@ html
                                 label(for=`page-${index}`)
                                     input(type='radio' id=`page-${index}` name="pageID" value=page.id)
                                     |  Page: #{page.name} - #{page.id}
+                    input(type="text" placeholder="Enter video url" name="videoUrl")
+                    input(type="text" placeholder="Enter caption (optional)" name="caption")
                     input(type='submit' value='Upload' onclick="this.form.submit(); this.disabled = true;")
             if(uploaded)
                 if(igUserId && containerId)

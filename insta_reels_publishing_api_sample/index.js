@@ -106,7 +106,8 @@ app.post("/uploadReels", async function (req, res) {
         const igResponse = await axios.get(getInstagramAccountUri);
         const hasIgBusinessAccount = igResponse.data.instagram_business_account ? true : false;
         const igUserId = igResponse.data.instagram_business_account.id;
-        const uploadVideoUri = `https://graph.facebook.com/v14.0/${igUserId}/media?media_type=REELS&video_url=${yourVideoUrl}&caption=${yourCaption}&access_token=${req.session.userToken}`;
+        const { videoUrl, caption } = req.body;
+        const uploadVideoUri = `https://graph.facebook.com/v14.0/${igUserId}/media?media_type=REELS&video_url=${videoUrl}&caption=${caption}&access_token=${req.session.userToken}`;
 
         // If there is a IG Business Account associated with the page
         if(hasIgBusinessAccount) {
