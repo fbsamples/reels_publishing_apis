@@ -26,7 +26,7 @@ Make sure the videos are in accordance with the guidelines below:
 |   ---------       |   -----------     |   ------------    |
 |   Resolution      |   540 x 960 (540p)|       n/a         |
 |   Aspect Ratio    |   9:16            |       9:16        |
-|   Frame Rate      |   30              |       n/a         |
+|   Frame Rate      |   23              |       n/a         |
 |   Duration        |   4 sec           |       60 sec      |
 |   File Size       |   n/a             |       n/a         |
 
