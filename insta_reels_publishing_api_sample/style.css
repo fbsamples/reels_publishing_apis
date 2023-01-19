@@ -43,10 +43,6 @@ input[type='submit']:disabled{
 	background-color: #cccccc;
 }
 
-input[type='file']{
-	width: 250px;
-}
-
 input[type='text'] {
 	width: 500px;
 	height: 20px;
@@ -105,4 +101,17 @@ label {
 
 .closebtn:hover {
 	color: black;
+}
+
+.canvas {
+	padding: 0;
+    margin: auto;
+    display: block;
+    width: 800px;
+    height: 600px;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
 }

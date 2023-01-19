@@ -33,6 +33,7 @@ const SCOPES = [
     "instagram_content_publish"
 ];
 const STRINGIFIED_SCOPES = SCOPES.join("%2c");
+const RATE_LIMIT_ALLOWED_QUOTA = 25; // 25 published posts every 24 hours
 
 app.use(express.static(path.join(__dirname, "./")));
 app.set("views", path.join(__dirname, "./"));
@@ -163,6 +164,10 @@ app.post("/publishReels", async function (req, res) {
         const publishResponse = await axios.post(publishVideoUri);
         const publishedMediaId = publishResponse.data.id;
 
+        const rateLimitCheckUrl = `https://graph.facebook.com/v14.0/${igUserId}/content_publishing_limit?access_token=${req.session.userToken}`;
+        const rateLimitResponse = await axios.get(rateLimitCheckUrl);
+        const usageRemaining = RATE_LIMIT_ALLOWED_QUOTA - rateLimitResponse.data.data[0].quota_usage;
+
         // Get PermaLink to redirect the user to the post
         const permaLinkUri = `https://graph.facebook.com/v14.0/${publishedMediaId}?fields=permalink&access_token=${req.session.userToken}`
         const permalinkResponse = await axios.get(permaLinkUri);
@@ -176,7 +181,10 @@ app.post("/publishReels", async function (req, res) {
             permalink,
             publishedMediaId,
             pages: req.session.pageData,
-            message: `Reel Published successfully on IG UserID #${igUserId} with Publish Media ID #${publishedMediaId}`
+            message: [
+                `Reel Published successfully on IG UserID #${igUserId} with Publish Media ID #${publishedMediaId}`,
+                `Publishes remaining - ${usageRemaining}`
+            ]
         });
     } else {
         res.render("upload_page", {
