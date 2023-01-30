@@ -10,7 +10,7 @@ In order to run the sample app you will need to install some required software, 
 
 You will need the following:
 
-* IG Content Publishing API is only available to Creator or Business accounts -- see [Set Up Instagram Accounts With Pages](https://developers.facebook.com/docs/instagram/ads-api/guides/pages-ig-account#via_page). And you need to make sure your Creator/Business IG account is connected to the Facebook Page. If not, follow the instructions here - [Add or remove an Instagram account from your Page](https://www.facebook.com/help/1148909221857370)
+* IG Content Publishing API is only available to Business accounts -- see [Set Up Instagram Accounts With Pages](https://developers.facebook.com/docs/instagram/ads-api/guides/pages-ig-account#via_page). And you need to make sure your Business IG account is connected to the Facebook Page. If not, follow the instructions here - [Add or remove an Instagram account from your Page](https://www.facebook.com/help/1148909221857370). Note that connecting to either regular Facebook Page or Profile+ (New Page Experience) works.
 
 * For your reference the Reels Publishing API documentation is located [here](https://developers.facebook.com/docs/instagram-api/guides/content-publishing/?translation)
 
