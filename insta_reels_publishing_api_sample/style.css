@@ -43,10 +43,6 @@ input[type='submit']:disabled{
 	background-color: #cccccc;
 }
 
-input[type='file']{
-	width: 250px;
-}
-
 input[type='text'] {
 	width: 500px;
 	height: 20px;

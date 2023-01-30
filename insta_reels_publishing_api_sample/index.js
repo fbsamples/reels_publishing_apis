@@ -163,6 +163,11 @@ app.post("/publishReels", async function (req, res) {
         const publishResponse = await axios.post(publishVideoUri);
         const publishedMediaId = publishResponse.data.id;
 
+        const rateLimitCheckUrl = `https://graph.facebook.com/v14.0/${igUserId}/content_publishing_limit?fields=config,quota_usage&access_token=${req.session.userToken}`;
+        const rateLimitResponse = await axios.get(rateLimitCheckUrl);
+        const { config: {quota_total}, quota_usage} = rateLimitResponse.data.data[0];
+        const usageRemaining = quota_total - quota_usage;
+
         // Get PermaLink to redirect the user to the post
         const permaLinkUri = `https://graph.facebook.com/v14.0/${publishedMediaId}?fields=permalink&access_token=${req.session.userToken}`
         const permalinkResponse = await axios.get(permaLinkUri);
@@ -176,7 +181,10 @@ app.post("/publishReels", async function (req, res) {
             permalink,
             publishedMediaId,
             pages: req.session.pageData,
-            message: `Reel Published successfully on IG UserID #${igUserId} with Publish Media ID #${publishedMediaId}`
+            message: [
+                `Reel Published successfully on IG UserID #${igUserId} with Publish Media ID #${publishedMediaId}`,
+                `Publishes remaining - ${usageRemaining}`
+            ]
         });
     } else {
         res.render("upload_page", {
