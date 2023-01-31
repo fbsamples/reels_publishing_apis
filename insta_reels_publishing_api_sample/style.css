@@ -48,6 +48,12 @@ input[type='text'] {
 	height: 20px;
 }
 
+form {
+	flex-direction: column;
+	display: flex;
+	align-items: center;
+}
+
 label {
 	text-align: center;
 }
