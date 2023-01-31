@@ -44,14 +44,14 @@ input[type='submit']:disabled{
 }
 
 input[type='text'] {
-	width: 400px;
+	width: 500px;
 	height: 20px;
 }
 
 form {
 	flex-direction: column;
 	display: flex;
-	position: relative;
+	/* position: relative; */
 	align-items: center;
 }
 
