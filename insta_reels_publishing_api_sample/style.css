@@ -51,7 +51,6 @@ input[type='text'] {
 form {
 	flex-direction: column;
 	display: flex;
-	/* position: relative; */
 	align-items: center;
 }
 
