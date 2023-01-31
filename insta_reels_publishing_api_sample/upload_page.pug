@@ -24,6 +24,12 @@ html
                                     |  Page: #{page.name} - #{page.id}
                     input(type="text" placeholder="Enter video url" name="videoUrl")
                     input(type="text" placeholder="Enter caption (optional)" name="caption")
+                    br
+                    b Provide a cover image either from URL or Video Offset (optional)
+                    br
+                    input(type="text" placeholder="Enter cover image url (optional)" name="coverUrl")
+                    b or
+                    input(type="text" placeholder="Enter thumbnail offset (optional)" name="thumbOffset")
                     input(type='submit' value='Upload' onclick="this.form.submit(); this.disabled = true;")
             if(uploaded)
                 if(igUserId && containerId)

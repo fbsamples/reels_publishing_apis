@@ -44,8 +44,15 @@ input[type='submit']:disabled{
 }
 
 input[type='text'] {
-	width: 500px;
+	width: 400px;
 	height: 20px;
+}
+
+form {
+	flex-direction: column;
+	display: flex;
+	position: relative;
+	align-items: center;
 }
 
 label {
