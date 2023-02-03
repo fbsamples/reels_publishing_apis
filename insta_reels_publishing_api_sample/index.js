@@ -94,6 +94,36 @@ app.get("/pages", async function (req, res) {
     }
 });
 
+// Endpoint to retrieve locations matching a search term
+app.get("/listLocations", async function (req, res) {
+    const associatedPagesUri = `https://graph.facebook.com/v14.0/me/accounts?access_token=${req.session.userToken}`;
+    if (req.session.userToken) {
+        try {
+            const associatedPages = await axios.get(associatedPagesUri);
+            req.session.pageData = associatedPages.data.data;
+            const locationName = req.query.locationName;
+
+            /**
+             * Query list of locations with the access token
+             */
+            const locationsListUri = `https://graph.facebook.com/v14.0/pages/search?q=${locationName}&fields=name,location,link&access_token=${req.session.userToken}`
+            const locationsList = await axios.get(locationsListUri);
+            req.session.locationData = locationsList.data.data;
+
+            res.render('upload_page', {
+                pages: req.session.pageData,
+                locations_list: req.session.locationData
+            });
+        } catch (error) {
+            res.render("index", {
+                error: `There was an error with the request: ${error}`,
+            });
+        }
+    } else {
+        res.render("index", { error: "You need to log in first" });
+    }
+});
+
 app.post("/uploadReels", async function (req, res) {
     const selectedPageID = req.body.pageID;
     try {
@@ -102,8 +132,8 @@ app.post("/uploadReels", async function (req, res) {
         const igResponse = await axios.get(getInstagramAccountUri);
         const hasIgBusinessAccount = igResponse.data.instagram_business_account ? true : false;
         const igUserId = igResponse.data.instagram_business_account.id;
-        const { videoUrl, caption, coverUrl, thumbOffset } = req.body;
-        const uploadParamsString = `caption=${caption}&cover_url=${coverUrl}&thumb_offset=${thumbOffset}&access_token=${req.session.userToken}`;
+        const { videoUrl, caption, coverUrl, thumbOffset, locationId } = req.body;
+        const uploadParamsString = `caption=${caption}&cover_url=${coverUrl}&thumb_offset=${thumbOffset}&location_id=${locationId}&access_token=${req.session.userToken}`;
         const uploadVideoUri = `https://graph.facebook.com/v14.0/${igUserId}/media?media_type=REELS&video_url=${videoUrl}&${uploadParamsString}`;
 
         // If there is a IG Business Account associated with the page
