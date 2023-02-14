@@ -99,8 +99,6 @@ app.get("/listLocations", async function (req, res) {
     const associatedPagesUri = `https://graph.facebook.com/v14.0/me/accounts?access_token=${req.session.userToken}`;
     if (req.session.userToken) {
         try {
-            const associatedPages = await axios.get(associatedPagesUri);
-            req.session.pageData = associatedPages.data.data;
             const locationName = req.query.locationName;
 
             /**
@@ -115,7 +113,7 @@ app.get("/listLocations", async function (req, res) {
                 locations_list: req.session.locationData
             });
         } catch (error) {
-            res.render("index", {
+            res.render("upload_page", {
                 error: `There was an error with the request: ${error}`,
             });
         }
@@ -132,7 +130,11 @@ app.post("/uploadReels", async function (req, res) {
         const igResponse = await axios.get(getInstagramAccountUri);
         const hasIgBusinessAccount = igResponse.data.instagram_business_account ? true : false;
         const igUserId = igResponse.data.instagram_business_account.id;
-        const { videoUrl, caption, coverUrl, thumbOffset, locationId } = req.body;
+        const { videoUrl, caption, coverUrl, thumbOffset } = req.body;
+        let { locationId } = req.body;
+        if(typeof locationId === 'undefined') {
+            locationId = "";
+        }
         const uploadParamsString = `caption=${caption}&cover_url=${coverUrl}&thumb_offset=${thumbOffset}&location_id=${locationId}&access_token=${req.session.userToken}`;
         const uploadVideoUri = `https://graph.facebook.com/v14.0/${igUserId}/media?media_type=REELS&video_url=${videoUrl}&${uploadParamsString}`;
 
