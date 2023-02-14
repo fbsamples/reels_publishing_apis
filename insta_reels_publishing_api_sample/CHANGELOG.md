@@ -15,7 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 
-## [1.0.1] 2023-01-30
+## [1.0.1] - 2023-01-30
 ### Added
 - Update Multer package to remove vulnerabilities by [#26](https://github.com/fbsamples/reels_publishing_apis/issues/26)
 - Profile+ check complete
