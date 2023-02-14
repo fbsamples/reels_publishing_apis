@@ -7,9 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [2.0.0] - 2023-02-14
 
 ### Added 
-- [Custom Thumbnail Support - thumb_offset](https://developers.facebook.com/docs/instagram-api/reference/ig-user/media#request-syntax)
-- [Location Tagging](https://developers.facebook.com/docs/instagram-api/guides/content-publishing/#location-tags)
-- [Quota Usage](https://developers.facebook.com/docs/instagram-api/guides/content-publishing/#checking-rate-limit-usage)
+- Added Custom Thumbnail Support
+- Included Location Tagging
+- Added Rate Limit Checks 
 
 ### Changed
 
