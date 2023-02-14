@@ -6,7 +6,7 @@ In order to run the sample app you will need to install some required software, 
 
 - Node JS
 
-## Before you start
+## [Before you start](#before-you-start)
 
 You will need the following:
 
@@ -24,6 +24,15 @@ You will need the following:
 
 * [Pug](https://pugjs.org/api/getting-started.html) installed on your server to create the UI for the app
 
+* If testing the [Location Tagging](https://developers.facebook.com/docs/instagram-api/guides/content-publishing/#location-tags) feature in the sample app, ensure to go through the pre-requisites for your Facebook App for the required permissions.
+    * The Location tagging feature requires your app to have access to the [Pages Search API](https://developers.facebook.com/docs/pages/searching) to search for [Pages](https://developers.facebook.com/docs/graph-api/reference/page) whose names match a search string.
+    * The [Pages Search API](https://developers.facebook.com/docs/pages/searching) requires the following pre-requisites to be met:
+        * A [User access token](https://developers.facebook.com/docs/facebook-login/guides/access-tokens#usertokens) and the [app secret](https://developers.facebook.com/docs/facebook-login/security/#appsecret) if the app user is logged into Facebook.
+        * An [App access token](https://developers.facebook.com/docs/facebook-login/guides/access-tokens) with the [Page Public Metadata Access](https://developers.facebook.com/docs/features-reference#page-public-metadata-access) feature if the app user is not logged into Facebook and is searching for public Page information.
+        * An [App access token](https://developers.facebook.com/docs/facebook-login/guides/access-tokens) with the [Page Public Content Access](https://developers.facebook.com/docs/features-reference#page-public-content-access) feature if the app user is not logged into Facebook and is searching Pages to conduct competitve analysis.
+        * Your Facebook App **MUST** undergo [App Review](https://developers.facebook.com/docs/app-review) for Advanced Access to [Page Public Metadata Access](https://developers.facebook.com/docs/features-reference#page-public-metadata-access) and [Page Public Content Access](https://developers.facebook.com/docs/features-reference#page-public-content-access) to search for locations to tag onto your reel.
+    * To be eligible for tagging, a Page must have latitude and longitude location data.
+
 For simplicity, this sample guide assumes that you save every file at the root level of the app directory without any nested folder structures except for node modules.
 
 ## [Reels Requirements for Publishing](https://developers.facebook.com/docs/instagram-api/reference/ig-user/media#creating)
@@ -40,6 +49,32 @@ Make sure the videos are in accordance with the guidelines below:
 * Audio bitrate: 128kbps
 * Duration: 15 mins maximum, 3 seconds minimum
 * File size: 1GB maximum
+
+### Rate limit checks `content_publishing_limit`
+Rate limit checks have been included in the sample app as of version 2.0.0.
+Instagram accounts are limited to 25 API-published posts within a 24 hour moving period. This limit is enforced on the POST /{ig-user-id}/media_publish endpoint when attempting to publish a media container. We recommend that your app also enforce the publishing rate limit, especially if your app allows app users to schedule posts to be published in the future.
+
+Please refer to [docs](https://developers.facebook.com/docs/instagram-api/guides/content-publishing#checking-rate-limit-usage) to learn more.
+
+### Custom Thumbnail Support `thumb_offset`
+Custom Thumbnail support has been included in the sample app as of version 2.0.0. This parameter refers to the location, in **milliseconds**, of the video or reel frame to be used as the cover thumbnail image. The default value is `0`, which is the first frame of the video or reel. For reels, If both `cover_url` and `thumb_offset` are specified, `cover_url` will used and `thumb_offset` will be ignored.
+
+### Cover URL `cover_url`
+Cover URL support has been included in the sample app as of version 2.0.0. This is the path to an image to use as the cover image for the Reels tab. The image specified will be cURLed hence the image must be on a public server. If both `cover_url` and `thumb_offset` are specified, `cover_url` is used and `thumb_offset` will be ignored. The image must conform to the specifications for a [Reels cover photo](https://developers.facebook.com/docs/instagram-api/reference/ig-user/media#reels-specs).
+
+### Location Tagging `location_id`
+Location Tagging feature has been included in the sample app as of version 2.0.0. The [`location_id` parameter](https://developers.facebook.com/docs/instagram-api/reference/ig-user/media#query-string-parameters) refers to the ID of a Page associated with a location that you want to tag the reel with. Ensure to refer to pre-requisites required to search for Pages in the [Before you start](#before-you-start) section of this README.
+
+### Carousel Posts
+IG Content Publishing API now includes support for [Carousel Posts](https://developers.facebook.com/docs/instagram-api/guides/content-publishing#carousel-posts). You may publish up to 10 images, videos, or a mix of the two in a single post (a carousel post). Publishing carousels is a three step process:
+
+* Use the [`POST /{ig-user-id}/media`](https://developers.facebook.com/docs/instagram-api/reference/ig-user/media#creating) endpoint to create individual item containers for each image and video that will appear in the carousel.
+* Use the [`POST /{ig-user-id}/media`](https://developers.facebook.com/docs/instagram-api/reference/ig-user/media#creating) endpoint again to create a single carousel container for the items.
+* Use the [`POST /{ig-user-id}/media_publish`](https://developers.facebook.com/docs/instagram-api/reference/ig-user/media_publish#creating) endpoint to publish the carousel container.
+
+Carousel posts count as a single post against the account's [rate limit](https://developers.facebook.com/docs/instagram-api/guides/content-publishing#rate-limit).
+
+Please note: This feature **IS NOT** included in the Sample App.
 
 ## Example Video URLs for testing:
 * https://static.videezy.com/system/resources/previews/000/014/045/original/30_seconds_digital_clock_display_of_sixteen_segments.mp4
