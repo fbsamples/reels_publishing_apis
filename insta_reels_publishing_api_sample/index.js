@@ -77,21 +77,60 @@ app.get("/callback", async function (req, res) {
 // Pages route to retrieve FB OAuth page tokens
 app.get("/pages", async function (req, res) {
     const associatedPagesUri = `https://graph.facebook.com/v14.0/me/accounts?access_token=${req.session.userToken}`;
-    if (req.session.userToken) {
-        try {
-            const associatedPages = await axios.get(associatedPagesUri);
-            req.session.pageData = associatedPages.data.data;
-            res.render('upload_page', {
-                'pages': req.session.pageData
-            });
-        } catch (error) {
-            res.render("index", {
-                error: `There was an error with the request: ${error}`,
-            });
-        }
-    } else {
+    if (!req.session.userToken) {
         res.render("index", { error: "You need to log in first" });
+        return;
     }
+
+    // Request all associated Facebook pages
+    let pagesData = [];
+    try {
+        const accountsResponse = await axios.get(associatedPagesUri);
+        pagesData = accountsResponse.data.data;
+    } catch (error) {
+        res.render("index", {
+            error: `There was an error requesting the FB pages: ${error}`,
+        });
+        return;
+    }
+
+    // Retrieve the Instagram Businesses associated with each page, if any, in a single HTTP request
+    const batchParamValue = pagesData.map(pageData => ({
+        method: "GET",
+        relative_url: `${pageData.id}?fields=instagram_business_account{name,username}`,
+        access_token: pageData.access_token,
+    }));
+    let batchResponses;
+    try {
+        batchResponses = await axios({
+            method: 'POST',
+            url: `https://graph.facebook.com/?access_token=${req.session.userToken}&include_headers=false`,
+            data: {
+                batch: batchParamValue,
+            },
+        });
+    } catch (error) {
+        res.render("index", {
+            error: `There was an error requesting the Instagram businesses: ${error}`,
+        });
+        return;
+    }
+
+    // Take only the Instagram business account info for those pages that had them connected
+    const instagramData = batchResponses.data
+        .filter(batchResponse => batchResponse.code === 200)
+        .map(batchResponse => JSON.parse(batchResponse.body))
+        .filter(singleApiResponse => singleApiResponse.instagram_business_account !== undefined)
+        .map(singleApiResponse => singleApiResponse.instagram_business_account)
+        .map(businessAccount => ({
+            displayName: `@${businessAccount.username}` +
+                (businessAccount.name ? ` (${businessAccount.name})` : ''),
+            ...businessAccount,
+        }));
+
+    res.render('upload_page', {
+        'accounts': instagramData,
+    });
 });
 
 // Endpoint to retrieve locations matching a search term
@@ -109,7 +148,6 @@ app.get("/listLocations", async function (req, res) {
             req.session.locationData = locationsList.data.data;
 
             res.render('upload_page', {
-                pages: req.session.pageData,
                 locations_list: req.session.locationData
             });
         } catch (error) {
@@ -123,67 +161,40 @@ app.get("/listLocations", async function (req, res) {
 });
 
 app.post("/uploadReels", async function (req, res) {
-    const selectedPageID = req.body.pageID;
+    const { videoUrl, caption, coverUrl, thumbOffset, accountId } = req.body;
+    let { locationId } = req.body;
+    if(typeof locationId === 'undefined') {
+        locationId = "";
+    }
+    const uploadParamsString = `caption=${caption}&cover_url=${coverUrl}&thumb_offset=${thumbOffset}&location_id=${locationId}&access_token=${req.session.userToken}`;
+    const uploadVideoUri = `https://graph.facebook.com/v14.0/${accountId}/media?media_type=REELS&video_url=${videoUrl}&${uploadParamsString}`;
+
     try {
-         // Now Retrieve the Instgram user ID associated with the selected page
-        const getInstagramAccountUri = `https://graph.facebook.com/v14.0/${selectedPageID}?fields=instagram_business_account&access_token=${req.session.userToken}`;
-        const igResponse = await axios.get(getInstagramAccountUri);
-        const hasIgBusinessAccount = igResponse.data.instagram_business_account ? true : false;
-        const igUserId = igResponse.data.instagram_business_account.id;
-        const { videoUrl, caption, coverUrl, thumbOffset } = req.body;
-        let { locationId } = req.body;
-        if(typeof locationId === 'undefined') {
-            locationId = "";
-        }
-        const uploadParamsString = `caption=${caption}&cover_url=${coverUrl}&thumb_offset=${thumbOffset}&location_id=${locationId}&access_token=${req.session.userToken}`;
-        const uploadVideoUri = `https://graph.facebook.com/v14.0/${igUserId}/media?media_type=REELS&video_url=${videoUrl}&${uploadParamsString}`;
+        // Upload Reel Video
+        const uploadResponse = await axios.post(uploadVideoUri);
+        const containerId = uploadResponse.data.id;
 
-        // If there is a IG Business Account associated with the page
-        if(hasIgBusinessAccount) {
-            try {
-                // Upload Reel Video
-                const uploadResponse = await axios.post(uploadVideoUri);
-                const containerId = uploadResponse.data.id;
+        // add variables to the session
+        Object.assign(req.session, { accountId, containerId });
 
-                // add variables to the session
-                Object.assign(req.session, { igUserId, containerId });
-
-                // Render Upload Success
-                res.render("upload_page", {
-                    uploaded: true,
-                    igUserId,
-                    containerId,
-                    pages: req.session.pageData,
-                    message: `Reel uploaded successfully on IG UserID #${igUserId} at Container ID #${containerId}. You can Publish now.`
-                });
-            } catch(e) {
-                res.render("upload_page", {
-                    uploaded: false,
-                    error: true,
-                    pages: req.session.pageData,
-                    message: `Error during upload. [Selected page id - ${selectedPageID}, IG User ID - ${igUserId}`
-                });
-            }
-        } else { // Error - No IG Account found
-            res.render("upload_page", {
-                uploaded: false,
-                error: true,
-                pages: req.session.pageData,
-                message: "No Instagram Business Account associated with the page!"
-            });
-        }
+        // Render Upload Success
+        res.render("upload_page", {
+            uploaded: true,
+            accountId,
+            containerId,
+            message: `Reel uploaded successfully on IG UserID #${accountId} at Container ID #${containerId}. You can Publish now.`
+        });
     } catch(e) {
         res.render("upload_page", {
             uploaded: false,
             error: true,
-            pages: req.session.pageData,
-            message: `Error in getting IG account details for the selected page id - ${selectedPageID}`
+            message: `Error during upload. [Selected account id - ${accountId}`
         });
     }
 });
 
 app.post("/publishReels", async function (req, res) {
-    const { igUserId, containerId } = req.session;
+    const { accountId, containerId } = req.session;
 
     // Upload happens asynchronously in the backend,
     // so you need to check upload status before you Publish
@@ -192,11 +203,11 @@ app.post("/publishReels", async function (req, res) {
 
     // When uploaded successfully, publish the video
     if(isUploaded) {
-        const publishVideoUri = `https://graph.facebook.com/v14.0/${igUserId}/media_publish?creation_id=${containerId}&access_token=${req.session.userToken}`;
+        const publishVideoUri = `https://graph.facebook.com/v14.0/${accountId}/media_publish?creation_id=${containerId}&access_token=${req.session.userToken}`;
         const publishResponse = await axios.post(publishVideoUri);
         const publishedMediaId = publishResponse.data.id;
 
-        const rateLimitCheckUrl = `https://graph.facebook.com/v14.0/${igUserId}/content_publishing_limit?fields=config,quota_usage&access_token=${req.session.userToken}`;
+        const rateLimitCheckUrl = `https://graph.facebook.com/v14.0/${accountId}/content_publishing_limit?fields=config,quota_usage&access_token=${req.session.userToken}`;
         const rateLimitResponse = await axios.get(rateLimitCheckUrl);
         const { config: {quota_total}, quota_usage} = rateLimitResponse.data.data[0];
         const usageRemaining = quota_total - quota_usage;
@@ -210,12 +221,11 @@ app.post("/publishReels", async function (req, res) {
         res.render("upload_page", {
             uploaded: true,
             published: true,
-            igUserId,
+            accountId,
             permalink,
             publishedMediaId,
-            pages: req.session.pageData,
             message: [
-                `Reel Published successfully on IG UserID #${igUserId} with Publish Media ID #${publishedMediaId}`,
+                `Reel Published successfully on IG UserID #${accountId} with Publish Media ID #${publishedMediaId}`,
                 `Publishes remaining - ${usageRemaining}`
             ]
         });
@@ -223,7 +233,6 @@ app.post("/publishReels", async function (req, res) {
         res.render("upload_page", {
             uploaded: false,
             error: true,
-            pages: req.session.pageData,
             message: "Reel Upload Failed for IG UserID #${igUserId} !"
         });
     }

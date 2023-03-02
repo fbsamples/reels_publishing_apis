@@ -12,16 +12,16 @@ html
         header
             h1 Instagram Reels Publishing API Sample App
         .canvas
-            - let pagesArr = pages ?? [];
-            if (pagesArr.length > 0)
+            - let accountsArr = accounts ?? [];
+            if (accountsArr.length > 0)
                 form(action='/uploadReels' name="uploadForm" id="uploadForm" method='POST')
-                    b Select an Page associated with Instagram Business Account ID to publish reel to
+                    b Select an Instagram Business Account to publish reel to
                     div(class='radio-group')
-                        each page, index in pagesArr
+                        each account, index in accountsArr
                             div(class='radio-child')
-                                label(for=`page-${index}`)
-                                    input(type='radio' id=`page-${index}` name="pageID" value=page.id)
-                                    |  Page: #{page.name} - #{page.id}
+                                label(for=`account-${index}`)
+                                    input(type='radio' id=`account-${index}` name="accountId" value=account.id)
+                                    |  Account: #{account.displayName} - #{account.id}
                     input(type="text" placeholder="Enter video url" name="videoUrl")
                     input(type="text" placeholder="Enter caption (optional)" name="caption")
                     br
@@ -63,7 +63,7 @@ html
                                                         td #{location.link}
                     input(type='submit' value='Upload' onclick="this.form.submit(); this.disabled = true;")
             if(uploaded)
-                if(igUserId && containerId)
+                if(accountId && containerId)
                     .alert
                         span.closebtn(onclick="this.parentElement.style.display='none';") &times;
                         |   #{message}
@@ -82,7 +82,7 @@ html
                 if(permalink)
                     a(href=permalink target="_blank") Link to Instagram Post
             else if(!uploaded)
-                if(igUserId)
+                if(accountId)
                     .alert
                         span.closebtn(onclick="this.parentElement.style.display='none';") &times;
                         |   #{message}
