@@ -142,6 +142,30 @@ app.get("/pages", async function (req, res) {
         return;
     }
     const instagramData = instagramBusinessAccountsResult.data;
+        
+    // Validate that the Instagram accounts have access to the Content Publishing API
+    // using the Content Publishing Limit endpoint
+    const publishingLimitBatchParamValue = instagramData.map(data => ({
+        method: "GET",
+        relative_url: `${data.id}/content_publishing_limit`,
+    }));
+    // We will use the response code to determine if a given account has access
+    const publishingLimitInfoFunc = (responseData) => responseData
+        .map(batchResponse => ({code: batchResponse.code}));
+    const publishingLimitsResult =
+        await getBatchRequestResponse(req.session.userToken, publishingLimitBatchParamValue, publishingLimitInfoFunc);
+    if (publishingLimitsResult.error) {
+        res.render("index", {
+            error: `There was an error requesting the Publishing Limits: ${error}`,
+        });
+        return;
+    }
+
+    // Merge the Instagram Business Info with its corresponding Publishing Limit
+    for (let i = 0; i < instagramData.length; i++) {
+        // If the Publishing Limit API call succeeded then the account has access to the API
+        instagramData[i].disabled = publishingLimitsResult.data[i].code !== 200;
+    }
 
     res.render('upload_page', {
         'accounts': instagramData,
