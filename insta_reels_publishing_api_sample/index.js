@@ -74,6 +74,28 @@ app.get("/callback", async function (req, res) {
     }
 });
 
+async function getBatchRequestResponse(accessToken, batchParamValue, responseTransformFunc) {
+    const result = {};
+    let batchResponses;
+
+    try {
+        batchResponses = await axios({
+            method: 'POST',
+            url: `https://graph.facebook.com/?access_token=${accessToken}&include_headers=false`,
+            data: {
+                batch: batchParamValue,
+            },
+        });
+    } catch (error) {
+        result.error = error;
+        return result;
+    }
+
+    // Transform the response
+    result.data = responseTransformFunc(batchResponses.data);
+    return result;
+}
+
 // Pages route to retrieve FB OAuth page tokens
 app.get("/pages", async function (req, res) {
     const associatedPagesUri = `https://graph.facebook.com/v14.0/me/accounts?access_token=${req.session.userToken}`;
@@ -95,29 +117,13 @@ app.get("/pages", async function (req, res) {
     }
 
     // Retrieve the Instagram Businesses associated with each page, if any, in a single HTTP request
-    const batchParamValue = pagesData.map(pageData => ({
+    const businessAccountsBatchParamValue = pagesData.map(pageData => ({
         method: "GET",
         relative_url: `${pageData.id}?fields=instagram_business_account{name,username}`,
         access_token: pageData.access_token,
     }));
-    let batchResponses;
-    try {
-        batchResponses = await axios({
-            method: 'POST',
-            url: `https://graph.facebook.com/?access_token=${req.session.userToken}&include_headers=false`,
-            data: {
-                batch: batchParamValue,
-            },
-        });
-    } catch (error) {
-        res.render("index", {
-            error: `There was an error requesting the Instagram businesses: ${error}`,
-        });
-        return;
-    }
-
     // Take only the Instagram business account info for those pages that had them connected
-    const instagramData = batchResponses.data
+    const businessAccountInfoFunc = (responseData) => responseData
         .filter(batchResponse => batchResponse.code === 200)
         .map(batchResponse => JSON.parse(batchResponse.body))
         .filter(singleApiResponse => singleApiResponse.instagram_business_account !== undefined)
@@ -127,6 +133,15 @@ app.get("/pages", async function (req, res) {
                 (businessAccount.name ? ` (${businessAccount.name})` : ''),
             ...businessAccount,
         }));
+    instagramBusinessAccountsResult =
+        await getBatchRequestResponse(req.session.userToken, businessAccountsBatchParamValue, businessAccountInfoFunc);
+    if (instagramBusinessAccountsResult.error) {
+        res.render("index", {
+            error: `There was an error requesting the Instagram businesses: ${error}`,
+        });
+        return;
+    }
+    const instagramData = instagramBusinessAccountsResult.data;
 
     res.render('upload_page', {
         'accounts': instagramData,
