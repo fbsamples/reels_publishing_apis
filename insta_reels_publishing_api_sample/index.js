@@ -97,7 +97,7 @@ app.get("/pages", async function (req, res) {
     // Retrieve the Instagram Businesses associated with each page, if any, in a single HTTP request
     const batchParamValue = pagesData.map(pageData => ({
         method: "GET",
-        relative_url: `${pageData.id}/?fields=instagram_business_account{name,username}`,
+        relative_url: `${pageData.id}?fields=instagram_business_account{name,username}`,
         access_token: pageData.access_token,
     }));
     let batchResponses;
