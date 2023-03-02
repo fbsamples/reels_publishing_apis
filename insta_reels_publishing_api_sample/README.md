@@ -87,6 +87,8 @@ Please note: This feature **IS NOT** included in the Sample App.
 
 ### Using a [devcontainer](https://code.visualstudio.com/docs/devcontainers/containers)
 
+Note: Ensure that containers are enabled and supported by the version of Visual Studio Code that you are using.
+
 * Navigate to the corresponding subfolder: `cd insta_reels_publishing_api_sample`
 * Run `npm install` in your terminal
 * Create a new file called `.env` and copy/paste all the environment variables from `.env.template`. Replace any environnment variables that have placeholders, such as APP_ID.
