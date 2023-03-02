@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Changed
 - Showing the list of Instagram accounts instead of Facebook pages
+- Validate access to the API using Publishing Limit endpoint
 
 ## [2.0.0] - 2023-02-14
 
