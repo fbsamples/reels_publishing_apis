@@ -21,7 +21,7 @@ html
                             div(class='radio-child')
                                 label(for=`account-${index}`)
                                     input(type='radio' id=`account-${index}` name="accountId" value=account.id)
-                                    |  Account: @#{account.username} (#{account.name}) - #{account.id}
+                                    |  Account: #{account.displayName} - #{account.id}
                     input(type="text" placeholder="Enter video url" name="videoUrl")
                     input(type="text" placeholder="Enter caption (optional)" name="caption")
                     br

@@ -121,7 +121,12 @@ app.get("/pages", async function (req, res) {
         .filter(batchResponse => batchResponse.code === 200)
         .map(batchResponse => JSON.parse(batchResponse.body))
         .filter(singleApiResponse => singleApiResponse.instagram_business_account !== undefined)
-        .map(singleApiResponse => singleApiResponse.instagram_business_account);
+        .map(singleApiResponse => singleApiResponse.instagram_business_account)
+        .map(businessAccount => ({
+            displayName: `@${businessAccount.username}` +
+                (businessAccount.name ? ` (${businessAccount.name})` : ''),
+            ...businessAccount,
+        }));
 
     res.render('upload_page', {
         'accounts': instagramData,
