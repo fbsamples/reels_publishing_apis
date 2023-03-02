@@ -9,6 +9,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 - Support for devcontainers
 
+### Changed
+- Showing the list of Instagram accounts instead of Facebook pages
+
 ## [2.0.0] - 2023-02-14
 
 ### Added 
