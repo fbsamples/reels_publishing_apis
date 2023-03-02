@@ -18,12 +18,6 @@ You will need the following:
 
 * You will need [Facebook App Secret](https://developers.facebook.com/docs/development/create-an-app/app-dashboard/basic-settings#app-secret) for the Facebook App
 
-* [nodeJS](https://nodejs.org/en/download/) or you can install via Homebrew(MacOS only) - `brew install node`
-
-* [mkcert](https://mkcert.org/) needs to be installed on your server to create the OpenSSL Certificate. If you're using Mac you can install it via Homebrew - `brew install mkcert`
-
-* [Pug](https://pugjs.org/api/getting-started.html) installed on your server to create the UI for the app
-
 * If testing the [Location Tagging](https://developers.facebook.com/docs/instagram-api/guides/content-publishing/#location-tags) feature in the sample app, ensure to go through the pre-requisites for your Facebook App for the required permissions.
     * The Location tagging feature requires your app to have access to the [Pages Search API](https://developers.facebook.com/docs/pages/searching) to search for [Pages](https://developers.facebook.com/docs/graph-api/reference/page) whose names match a search string.
     * The [Pages Search API](https://developers.facebook.com/docs/pages/searching) requires the following pre-requisites to be met:
@@ -91,6 +85,25 @@ Please note: This feature **IS NOT** included in the Sample App.
 
 ## Running the project
 
+### Using a [devcontainer](https://code.visualstudio.com/docs/devcontainers/containers)
+
+Note: Ensure that containers are enabled and supported by the version of Visual Studio Code that you are using.
+
+* Navigate to the corresponding subfolder: `cd insta_reels_publishing_api_sample`
+* Run `npm install` in your terminal
+* Create a new file called `.env` and copy/paste all the environment variables from `.env.template`. Replace any environnment variables that have placeholders, such as APP_ID.
+* Create an OpenSSL Cert
+    * `mkcert localhost` - This will create a localhost pem file
+    * You will see `localhost.pem` and `localhost-key.pem `files generated.
+
+* Running the Sample App
+    * `npm start`
+    * Once the sample app starts running, go to https://localhost:8000 to test the workflow.
+
+### Locally
+
+* Install [nodeJS](https://nodejs.org/en/download/), which you can get via Homebrew (MacOS only) - `brew install node`
+* Install [mkcert](https://mkcert.org/) to create the OpenSSL Certificate. If you're using Mac you can install it via Homebrew - `brew install mkcert`
 * Run `npm install` in your terminal
 * Create a new file called `.env` and copy/paste all the environment variables from `.env.template`. Replace any environnment variables that have placeholders, such as APP_ID.
 
