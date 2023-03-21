@@ -151,6 +151,8 @@ app.get("/pages", async function (req, res) {
         instagramData[i].disabled = publishingLimitsResult.data[i].code !== 200;
     }
 
+    req.session.instagramData = instagramData;
+
     res.render('upload_page', {
         'accounts': instagramData,
     });
@@ -171,6 +173,7 @@ app.get("/listLocations", async function (req, res) {
             req.session.locationData = locationsList.data.data;
 
             res.render('upload_page', {
+                accounts: req.session.instagramData,
                 locations_list: req.session.locationData
             });
         } catch (error) {
