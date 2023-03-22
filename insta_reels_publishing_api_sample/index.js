@@ -98,7 +98,8 @@ async function getBatchRequestResponse(accessToken, batchParamValue, responseTra
 
 // Pages route to retrieve FB OAuth page tokens
 app.get("/pages", async function (req, res) {
-    const associatedPagesUri = `https://graph.facebook.com/v14.0/me/accounts?access_token=${req.session.userToken}`;
+    const associatedPagesUri = `https://graph.facebook.com/v14.0/me/accounts?access_token=${req.session.userToken}` +
+        '&fields=instagram_business_account{name,username}';
     if (!req.session.userToken) {
         res.render("index", { error: "You need to log in first" });
         return;
@@ -116,33 +117,16 @@ app.get("/pages", async function (req, res) {
         return;
     }
 
-    // Retrieve the Instagram Businesses associated with each page, if any, in a single HTTP request
-    const businessAccountsBatchParamValue = pagesData.map(pageData => ({
-        method: "GET",
-        relative_url: `${pageData.id}?fields=instagram_business_account{name,username}`,
-        access_token: pageData.access_token,
-    }));
     // Take only the Instagram business account info for those pages that had them connected
-    const businessAccountInfoFunc = (responseData) => responseData
-        .filter(batchResponse => batchResponse.code === 200)
-        .map(batchResponse => JSON.parse(batchResponse.body))
-        .filter(singleApiResponse => singleApiResponse.instagram_business_account !== undefined)
-        .map(singleApiResponse => singleApiResponse.instagram_business_account)
+    const instagramData = pagesData
+        .filter(pageData => pageData.instagram_business_account !== undefined)
+        .map(pageData => pageData.instagram_business_account)
         .map(businessAccount => ({
             displayName: `@${businessAccount.username}` +
                 (businessAccount.name ? ` (${businessAccount.name})` : ''),
             ...businessAccount,
         }));
-    instagramBusinessAccountsResult =
-        await getBatchRequestResponse(req.session.userToken, businessAccountsBatchParamValue, businessAccountInfoFunc);
-    if (instagramBusinessAccountsResult.error) {
-        res.render("index", {
-            error: `There was an error requesting the Instagram businesses: ${error}`,
-        });
-        return;
-    }
-    const instagramData = instagramBusinessAccountsResult.data;
-        
+    
     // Validate that the Instagram accounts have access to the Content Publishing API
     // using the Content Publishing Limit endpoint
     const publishingLimitBatchParamValue = instagramData.map(data => ({
@@ -167,6 +151,8 @@ app.get("/pages", async function (req, res) {
         instagramData[i].disabled = publishingLimitsResult.data[i].code !== 200;
     }
 
+    req.session.instagramData = instagramData;
+
     res.render('upload_page', {
         'accounts': instagramData,
     });
@@ -187,6 +173,7 @@ app.get("/listLocations", async function (req, res) {
             req.session.locationData = locationsList.data.data;
 
             res.render('upload_page', {
+                accounts: req.session.instagramData,
                 locations_list: req.session.locationData
             });
         } catch (error) {
