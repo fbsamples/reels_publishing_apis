@@ -14,6 +14,10 @@ const https = require("https");
 const path = require("path");
 const fs = require("fs");
 const { isUploadSuccessful } = require("./utils");
+const { URLSearchParams } = require("url");
+
+const DEFAULT_GRAPH_API_ORIGIN = 'https://graph.facebook.com';
+const DEFAULT_GRAPH_API_VERSION = '';
 
 // Read variables from environment
 require("dotenv").config();
@@ -22,8 +26,23 @@ const {
     PORT,
     REDIRECT_URI,
     APP_ID,
-    API_SECRET
+    API_SECRET,
+    GRAPH_API_ORIGIN,
+    GRAPH_API_VERSION,
 } = process.env;
+
+const GRAPH_API_BASE_URL = (GRAPH_API_ORIGIN ?? DEFAULT_GRAPH_API_ORIGIN) + '/' +
+    (GRAPH_API_VERSION ? GRAPH_API_VERSION + '/' : DEFAULT_GRAPH_API_VERSION);
+
+function buildGraphAPIURL(path, searchParams, accessToken) {
+    const url = new URL(path, GRAPH_API_BASE_URL);
+
+    url.search = new URLSearchParams(searchParams);
+    if (accessToken)
+        url.searchParams.append('access_token', accessToken);
+
+    return url.toString();
+}
 
 // Access scopes required for the token
 const SCOPES = [
@@ -63,7 +82,12 @@ app.get("/login", function (req, res) {
 // Callback route for handling FB OAuth user token And reroute to '/pages'
 app.get("/callback", async function (req, res) {
     const code = req.query.code;
-    const uri = `https://graph.facebook.com/oauth/access_token?client_id=${APP_ID}&redirect_uri=${REDIRECT_URI}&client_secret=${API_SECRET}&code=${code}`;
+    const uri = buildGraphAPIURL('oauth/access_token', {
+        client_id: APP_ID,
+        redirect_uri: REDIRECT_URI,
+        client_secret: API_SECRET,
+        code,
+    });
     try {
         const response = await axios.post(uri);
         req.session.userToken = response.data.access_token;
@@ -82,7 +106,7 @@ async function getBatchRequestResponse(accessToken, batchParamValue, responseTra
     try {
         batchResponses = await axios({
             method: 'POST',
-            url: `https://graph.facebook.com/?access_token=${accessToken}&include_headers=false`,
+            url: buildGraphAPIURL('', {include_headers: false}, accessToken),
             data: {
                 batch: batchParamValue,
             },
@@ -99,8 +123,9 @@ async function getBatchRequestResponse(accessToken, batchParamValue, responseTra
 
 // Pages route to retrieve FB OAuth page tokens
 app.get("/pages", async function (req, res) {
-    const associatedPagesUri = `https://graph.facebook.com/v14.0/me/accounts?access_token=${req.session.userToken}` +
-        '&fields=instagram_business_account{name,username}';
+    const associatedPagesUri = buildGraphAPIURL('me/accounts', {
+        fields: 'instagram_business_account{name,username}',
+    }, req.session.userToken);
     if (!req.session.userToken) {
         res.render("index", { error: "You need to log in first" });
         return;
@@ -161,7 +186,6 @@ app.get("/pages", async function (req, res) {
 
 // Endpoint to retrieve locations matching a search term
 app.get("/listLocations", async function (req, res) {
-    const associatedPagesUri = `https://graph.facebook.com/v14.0/me/accounts?access_token=${req.session.userToken}`;
     if (req.session.userToken) {
         try {
             const locationName = req.query.locationName;
@@ -169,7 +193,10 @@ app.get("/listLocations", async function (req, res) {
             /**
              * Query list of locations with the access token
              */
-            const locationsListUri = `https://graph.facebook.com/v14.0/pages/search?q=${locationName}&fields=name,location,link&access_token=${req.session.userToken}`
+            const locationsListUri = buildGraphAPIURL('pages/search', {
+                q: locationName,
+                fields: 'name,location,link',
+            }, req.session.userToken);
             const locationsList = await axios.get(locationsListUri);
             req.session.locationData = locationsList.data.data;
 
@@ -193,8 +220,14 @@ app.post("/uploadReels", async function (req, res) {
     if(typeof locationId === 'undefined') {
         locationId = "";
     }
-    const uploadParamsString = `caption=${caption}&cover_url=${coverUrl}&thumb_offset=${thumbOffset}&location_id=${locationId}&access_token=${req.session.userToken}`;
-    const uploadVideoUri = `https://graph.facebook.com/v14.0/${accountId}/media?media_type=REELS&video_url=${videoUrl}&${uploadParamsString}`;
+    const uploadVideoUri = buildGraphAPIURL(`${accountId}/media`, {
+        media_type: 'REELS',
+        video_url: videoUrl,
+        caption,
+        cover_url: coverUrl,
+        thumb_offset: thumbOffset,
+        location_id: locationId,
+    }, req.session.userToken);
 
     try {
         // Upload Reel Video
@@ -215,7 +248,7 @@ app.post("/uploadReels", async function (req, res) {
         res.render("upload_page", {
             uploaded: false,
             error: true,
-            message: `Error during upload. [Selected account id - ${accountId}`
+            message: `Error during upload. [Selected account id - ${accountId}]: ${e}`,
         });
     }
 });
@@ -225,22 +258,28 @@ app.post("/publishReels", async function (req, res) {
 
     // Upload happens asynchronously in the backend,
     // so you need to check upload status before you Publish
-    const checkStatusUri = `https://graph.facebook.com/v14.0/${containerId}?fields=status_code&access_token=${req.session.userToken}`;
+    const checkStatusUri = buildGraphAPIURL(`${containerId}`, {fields: 'status_code'}, req.session.userToken);
     const isUploaded = await isUploadSuccessful(0, checkStatusUri);
 
     // When uploaded successfully, publish the video
     if(isUploaded) {
-        const publishVideoUri = `https://graph.facebook.com/v14.0/${accountId}/media_publish?creation_id=${containerId}&access_token=${req.session.userToken}`;
+        const publishVideoUri = buildGraphAPIURL(`${accountId}/media_publish`, {
+            creation_id: containerId,
+        }, req.session.userToken);
         const publishResponse = await axios.post(publishVideoUri);
         const publishedMediaId = publishResponse.data.id;
 
-        const rateLimitCheckUrl = `https://graph.facebook.com/v14.0/${accountId}/content_publishing_limit?fields=config,quota_usage&access_token=${req.session.userToken}`;
+        const rateLimitCheckUrl = buildGraphAPIURL(`${accountId}/content_publishing_limit`, {
+            fields: 'config,quota_usage',
+        }, req.session.userToken);
         const rateLimitResponse = await axios.get(rateLimitCheckUrl);
         const { config: {quota_total}, quota_usage} = rateLimitResponse.data.data[0];
         const usageRemaining = quota_total - quota_usage;
 
         // Get PermaLink to redirect the user to the post
-        const permaLinkUri = `https://graph.facebook.com/v14.0/${publishedMediaId}?fields=permalink&access_token=${req.session.userToken}`
+        const permaLinkUri = buildGraphAPIURL(`${publishedMediaId}`, {
+            fields: 'permalink',
+        }, req.session.userToken);
         const permalinkResponse = await axios.get(permaLinkUri);
         const permalink = permalinkResponse.data.permalink;
 
