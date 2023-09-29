@@ -17,7 +17,7 @@ const { isUploadSuccessful } = require("./utils");
 const { URLSearchParams } = require("url");
 
 const DEFAULT_GRAPH_API_ORIGIN = 'https://graph.facebook.com';
-const DEFAULT_GRAPH_API_VERSION_PATH = '';
+const DEFAULT_GRAPH_API_VERSION = '';
 
 // Read variables from environment
 require("dotenv").config();
@@ -28,11 +28,11 @@ const {
     APP_ID,
     API_SECRET,
     GRAPH_API_ORIGIN,
-    GRAPH_API_VERSION_PATH,
+    GRAPH_API_VERSION,
 } = process.env;
 
-const GRAPH_API_BASE_URL = (GRAPH_API_ORIGIN ?? DEFAULT_GRAPH_API_ORIGIN) +
-    (GRAPH_API_VERSION_PATH ?? DEFAULT_GRAPH_API_VERSION_PATH);
+const GRAPH_API_BASE_URL = (GRAPH_API_ORIGIN ?? DEFAULT_GRAPH_API_ORIGIN) + '/' +
+    (GRAPH_API_VERSION ? GRAPH_API_VERSION + '/' : DEFAULT_GRAPH_API_VERSION);
 
 function buildGraphAPIURL(path, searchParams, accessToken) {
     const url = new URL(path, GRAPH_API_BASE_URL);
