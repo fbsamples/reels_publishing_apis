@@ -166,7 +166,7 @@ app.get("/pages", async function (req, res) {
         await getBatchRequestResponse(req.session.userToken, publishingLimitBatchParamValue, publishingLimitInfoFunc);
     if (publishingLimitsResult.error) {
         res.render("index", {
-            error: `There was an error requesting the Publishing Limits: ${error}`,
+            error: `There was an error requesting the Publishing Limits: ${publishingLimitsResult.error}`,
         });
         return;
     }
