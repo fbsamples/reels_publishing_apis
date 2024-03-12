@@ -4,7 +4,8 @@
 
 You will need the following:
 
-* For your reference the Reels Publishing API documentation is located [here](https://developers.facebook.com/docs/video-api/guides/reels-publishing)
+* For your reference the Reels Publishing API documentation is located [here](https://developers.facebook.com/docs/video-api/guides/reels-publishing) and the Stories Publsihing API document is located [here](https://developers.facebook.com/docs/page-stories-api/)
+
 
 * In order to run the app, you will need to update the code and add your Facebook Developer App Id. If you don’t have an app, follow the guide [here](https://developers.facebook.com/docs/development/) to create your app first.
 

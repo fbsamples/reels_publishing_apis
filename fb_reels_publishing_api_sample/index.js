@@ -27,6 +27,8 @@ const SCOPES = [
     "pages_manage_posts",
 ];
 const STRINGIFIED_SCOPES = SCOPES.join("%2c");
+let PRODUCT = "reels";
+const BASEURL = "graph.facebook.com";
 
 /**
  * [User Modifiable]
@@ -91,7 +93,7 @@ app.get("/login", function (req, res) {
  */
 app.get("/callback", async function (req, res) {
     const code = req.query.code;
-    const uri = `https://graph.facebook.com/oauth/access_token?client_id=${APP_ID}&redirect_uri=${REDIRECT_URI}&client_secret=${API_SECRET}&code=${code}`;
+    const uri = `https://${BASEURL}/oauth/access_token?client_id=${APP_ID}&redirect_uri=${REDIRECT_URI}&client_secret=${API_SECRET}&code=${code}`;
     try {
         const response = await axios.post(uri);
         req.session.userToken = response.data.access_token;
@@ -107,7 +109,7 @@ app.get("/callback", async function (req, res) {
  * Pages route to retrieve FB OAuth page tokens
  */
 app.get("/pages", async function (req, res) {
-    const uri = `https://graph.facebook.com/v13.0/me/accounts?access_token=${req.session.userToken}`;
+    const uri = `https://${BASEURL}/v14.0/me/accounts?access_token=${req.session.userToken}`;
     if (req.session.userToken) {
         try {
             const response = await axios.get(uri);
@@ -133,6 +135,7 @@ app.get("/pages", async function (req, res) {
 app.post("/uploadReels", function (req, res) {
     const uploadSingleVideo = videoUpload.single("videoFile");
     uploadSingleVideo(req, res, async function (err) {
+        const isStories = req.body.isStories === undefined ? false : true;
         const selectedPageID = req.body.pageID;
         const videoUrl = req.body.videoUrl;
         const videoFile = req.file;
@@ -172,6 +175,7 @@ app.post("/uploadReels", function (req, res) {
                 });
             } else {
                 let data, size;
+                PRODUCT = isStories ? "stories" : "reels";
                 if(videoFile) {
                     const filePath = `${__dirname}/${videoFile.path}`;
                     data = fs.readFileSync(filePath);
@@ -180,12 +184,12 @@ app.post("/uploadReels", function (req, res) {
                 const pageToken = req.session.pageData.filter((pd) => pd.id === selectedPageID)[0].access_token;
                 try {
                     // generate video id
-                    const uploadStartUri = `https://graph.facebook.com/v13.0/${selectedPageID}/video_reels?upload_phase=start&access_token=${pageToken}`;
+                    const uploadStartUri = `https://${BASEURL}/v14.0/${selectedPageID}/video_${PRODUCT}?upload_phase=start&access_token=${pageToken}`
                     const initiateUploadResponse = await axios.post(uploadStartUri);
                     const videoId = initiateUploadResponse.data.video_id;
 
                     // upload video
-                    const uploadBinaryUri = `https://rupload.facebook.com/video-upload/v13.0/${videoId}`;
+                    const uploadBinaryUri = `https://rupload.facebook.com/video-upload/v14.0/${videoId}`;
                     const uploadBinaryResponse = await axios({
                         method: 'post',
                         url: uploadBinaryUri,
@@ -232,7 +236,7 @@ app.post("/uploadReels", function (req, res) {
  */
 app.get("/listUploadedVideos", async function(req, res) {
     // Access all eligible pages for the account
-    const uri = `https://graph.facebook.com/v13.0/me/accounts?access_token=${req.session.userToken}`;
+    const uri = `https://${BASEURL}/v14.0/me/accounts?access_token=${req.session.userToken}`;
 
     if (req.session.userToken) {
         try {
@@ -242,6 +246,7 @@ app.get("/listUploadedVideos", async function(req, res) {
             const selectedPageID = req.query.pageID;
             const videoUrl = req.query.videoUrl;
             const videoFile = req.query.videoFile;
+            const isStories = req.query.isStories === undefined ? false : true;
 
             try {
                 if(!selectedPageID) {
@@ -253,9 +258,10 @@ app.get("/listUploadedVideos", async function(req, res) {
                         message: "No page has been selected",
                     });
                 } else if (selectedPageID && !videoFile && !videoUrl) {
+                    const endpoint = isStories ? "stories" : "video_reels";
                     // Retrieve Page Access token corresponding to the selected page
                     const pageToken = req.session.pageData.filter((pd) => pd.id === selectedPageID)[0].access_token;
-                    const videoUri = `https://graph.facebook.com/v13.0/${selectedPageID}/video_reels/?limit=5&access_token=${pageToken}`;
+                    const videoUri = `https://${BASEURL}/v14.0/${selectedPageID}/${endpoint}/?limit=5&access_token=${pageToken}`;
 
                     const video_response = await axios.get(videoUri);
                     const videos_list = video_response.data.data;
@@ -273,14 +279,26 @@ app.get("/listUploadedVideos", async function(req, res) {
                             if (value['updated_time']) {
                                 self[index]['updated_time'] = (new Date(value['updated_time'])).toLocaleString();
                             }
+                            if (isStories && value['creation_time']) {
+                                self[index]['creation_time'] = (new Date(value['creation_time'] * 1000)).toLocaleString();
+                            }
                         })
                         // Render the Upload page, but now send back the list of past reels of the selected page
-                        res.render("upload_page", {
-                            uploaded: false,
-                            error: false,
-                            pages: req.session.pageData,
-                            videos: videos_list,
-                        });
+                        if (isStories) {
+                            res.render("upload_page", {
+                                uploaded: false,
+                                error: false,
+                                pages: req.session.pageData,
+                                stories: videos_list,
+                            });
+                        } else {
+                            res.render("upload_page", {
+                                uploaded: false,
+                                error: false,
+                                pages: req.session.pageData,
+                                reels: videos_list,
+                            });
+                        }
                     }
                 }
             } catch(error) {
@@ -308,7 +326,7 @@ app.post("/publishReels", async function (req, res) {
     const { selectedPageID, pageToken, videoId, hasVerifiedConsentBeforePublishing } = req.session;
     const { title, description } = req.body
 
-    const basePublishReelsURI = `https://graph.facebook.com/v13.0/${selectedPageID}/video_reels?upload_phase=finish&video_id=${videoId}&title=${title}&description=${description}&access_token=${pageToken}`;
+    const basePublishReelsURI = `https://${BASEURL}/v14.0/${selectedPageID}/video_${PRODUCT}?upload_phase=finish&video_id=${videoId}&title=${title}&description=${description}&access_token=${pageToken}`;
     if (req.body.scheduledpublishtime != ''){
         // If Reel is scheduled to be published at a future time
         const scheduled_publish_time = convertToUnix(req.body.scheduledpublishtime);
@@ -355,7 +373,7 @@ app.post("/publishReels", async function (req, res) {
  */
 app.post("/checkStatus", async function (req, res) {
     const { pageToken, videoId } = req.session;
-    const statusUri = `https://graph.facebook.com/v13.0/${videoId}/?fields=status&access_token=${pageToken}`;
+    const statusUri = `https://${BASEURL}/v14.0/${videoId}/?fields=status&access_token=${pageToken}`;
     const statusResponse = await axios.get(statusUri);
     let message, published=false, error=false, processing=false;
 
@@ -388,7 +406,7 @@ app.post("/checkStatus", async function (req, res) {
 
 app.get('/asyncStatus', async function(req, res) {
   const {pageToken, videoId} = req.session;
-  const statusUri = `https://graph.facebook.com/v13.0/${videoId}/?fields=status&access_token=${pageToken}`;
+  const statusUri = `https://${BASEURL}/v14.0/${videoId}/?fields=status&access_token=${pageToken}`;
   let status = 'processing';
 
   try {
