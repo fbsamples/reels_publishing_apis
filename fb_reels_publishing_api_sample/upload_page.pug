@@ -47,7 +47,7 @@ html
                   td #{reel.id}
                   td #{reel.description}
                   td #{reel.updated_time}
-      
+
       if(stories)
         fieldset
           h3 Five Last Created Stories of Page
@@ -78,6 +78,8 @@ html
               input(class='optional-parameter-input' type='text' placeholder='title' name='title')
               br
               input(class='optional-parameter-input' type='text' placeholder= 'description' name='description')
+              br
+              input(class='optional-parameter-input' type='text' placeholder= 'location' name='location')
               br
               <label type="text" for="publish-time">Schedule Upload: </label>
               input(id='publish-time' class='optional-parameter-input' type='datetime-local' name='scheduledpublishtime' onchange=`checkTimeDifference('publish-time')`)
