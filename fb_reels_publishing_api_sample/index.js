@@ -324,17 +324,23 @@ app.get("/listUploadedVideos", async function(req, res) {
 
 app.post("/publishReels", async function (req, res) {
     const { selectedPageID, pageToken, videoId, hasVerifiedConsentBeforePublishing } = req.session;
-    const { title, description } = req.body
+    const { title, description, place } = req.body
 
     const basePublishReelsURI = `https://${BASEURL}/v14.0/${selectedPageID}/video_${PRODUCT}?upload_phase=finish&video_id=${videoId}&title=${title}&description=${description}&access_token=${pageToken}`;
+    let publishReelsUrl = basePublishReelsURI;
+
+    if (place != null) {
+        // Add location tag if provided
+        publishReelsUrl += `&place=${place}`;
+    }
     if (req.body.scheduledpublishtime != ''){
         // If Reel is scheduled to be published at a future time
         const scheduled_publish_time = convertToUnix(req.body.scheduledpublishtime);
-        publishReelsUrl = basePublishReelsURI + `&scheduled_publish_time=${scheduled_publish_time}&video_state=SCHEDULED`;
+        publishReelsUrl += `&scheduled_publish_time=${scheduled_publish_time}&video_state=SCHEDULED`;
     }
     else {
         // Publish the Reel now
-        publishReelsUrl = basePublishReelsURI + `&video_state=PUBLISHED`;
+        publishReelsUrl += `&video_state=PUBLISHED`;
     }
     try {
         // Initiate Publishing Reel
