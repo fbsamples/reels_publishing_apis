@@ -36,7 +36,7 @@ const GRAPH_API_BASE_URL = (GRAPH_API_ORIGIN ?? DEFAULT_GRAPH_API_ORIGIN) + '/' 
 
 function buildGraphAPIURL(path, searchParams, accessToken) {
     const url = new URL(path, GRAPH_API_BASE_URL);
-
+    Object.keys(searchParams).forEach((key) => !searchParams[key] && delete searchParams[key]);
     url.search = new URLSearchParams(searchParams);
     if (accessToken)
         url.searchParams.append('access_token', accessToken);
@@ -53,6 +53,7 @@ const SCOPES = [
     "instagram_content_publish"
 ];
 const STRINGIFIED_SCOPES = SCOPES.join("%2c");
+let PRODUCT = "REELS";
 
 app.use(express.static(path.join(__dirname, "./")));
 app.set("views", path.join(__dirname, "./"));
@@ -216,19 +217,22 @@ app.get("/listLocations", async function (req, res) {
 
 app.post("/uploadReels", async function (req, res) {
     const { videoUrl, caption, coverUrl, thumbOffset, accountId } = req.body;
-    let { locationId } = req.body;
+    let { locationId, isStories } = req.body;
     if(typeof locationId === 'undefined') {
         locationId = "";
     }
+    if(isStories !== undefined) {
+        PRODUCT = "STORIES";
+    } 
     const uploadVideoUri = buildGraphAPIURL(`${accountId}/media`, {
-        media_type: 'REELS',
+        media_type: PRODUCT,
         video_url: videoUrl,
         caption,
         cover_url: coverUrl,
         thumb_offset: thumbOffset,
         location_id: locationId,
     }, req.session.userToken);
-
+    
     try {
         // Upload Reel Video
         const uploadResponse = await axios.post(uploadVideoUri);
@@ -242,13 +246,13 @@ app.post("/uploadReels", async function (req, res) {
             uploaded: true,
             accountId,
             containerId,
-            message: `Reel uploaded successfully on IG UserID #${accountId} at Container ID #${containerId}. You can Publish now.`
+            message: `${PRODUCT.toLowerCase()} uploaded successfully on IG UserID #${accountId} at Container ID #${containerId}. You can Publish now.`
         });
     } catch(e) {
         res.render("upload_page", {
             uploaded: false,
             error: true,
-            message: `Error during upload. [Selected account id - ${accountId}]: ${e}`,
+            message: `Error during upload. [Selected account id - ${accountId}]: ${e.response.data.error}`,
         });
     }
 });
