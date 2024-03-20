@@ -22,10 +22,14 @@ html
                                 label(for=`account-${index}`)
                                     input(type='radio' id=`account-${index}` name="accountId" value=account.id disabled=account.disabled)
                                     |  Account: #{account.displayName} - #{account.id}
+                    div(class='checkbox-group')
+                        input(type="checkbox" id="isStories" placeholder="Upload as Stories" name="isStories")
+                        label(for="isStories") Make the request for Stories
+                    br
                     input(type="text" placeholder="Enter video url" name="videoUrl")
                     input(type="text" placeholder="Enter caption (optional)" name="caption")
                     br
-                    b Provide a cover image either from URL or Video Offset (optional)
+                    b Provide a cover image either from URL or Video Offset (Reels only - optional)
                     br
                     input(type="text" placeholder="Enter cover image url (optional)" name="coverUrl")
                     b or
