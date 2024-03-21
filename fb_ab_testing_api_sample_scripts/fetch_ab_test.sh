@@ -10,7 +10,7 @@ do
 done
 
 usage () {
-    echo "Usage: fetch_ab_test.sh -t <api_token> -p <page_id> -i <ab_test_id>";
+    echo "Usage: fetch_ab_test.sh -t <api_access_token> -p <page_id> -i <ab_test_id>";
     exit 1;
 }
 

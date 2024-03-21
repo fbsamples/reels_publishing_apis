@@ -4,13 +4,13 @@ while getopts t:o:h:v: flag
 do
     case "${flag}" in
         t) TOKEN=${OPTARG};;
-        o) OWNER_ID=${OPTARG};;
+        p) PAGE_ID=${OPTARG};;
         v) VIDEO_PATH=${OPTARG};;
     esac
 done
 
 usage () {
-    echo "Usage: upload.sh -t <api_token> -o <owner_id/page_id>  -v <video_file_path> ";
+    echo "Usage: upload_reel.sh -t <api_access_token> -p <page_id>  -v <video_file_path> ";
     exit 1;
 }
 
@@ -18,7 +18,7 @@ if ([ -z "$TOKEN" ]);
 then
     usage;
 fi
-if ([ -z "$OWNER_ID" ]);
+if ([ -z "$OWNPAGE_IDER_ID" ]);
 then
     usage;
 fi
@@ -28,7 +28,7 @@ then
 fi
 
 echo "token: $TOKEN"
-echo "owner: $OWNER_ID"
+echo "owner: $PAGE_ID"
 echo "video: $VIDEO_PATH"
 
 VIDEO_SIZE=`stat -f%z "$VIDEO_PATH"`
@@ -36,7 +36,7 @@ VIDEO_SIZE=`stat -f%z "$VIDEO_PATH"`
 echo "video size: $VIDEO_SIZE"
 
 CREATE=$(\
-curl -X POST "https://graph.facebook.com/v13.0/$OWNER_ID/video_reels" \
+curl -X POST "https://graph.facebook.com/v13.0/$PAGE_ID/video_reels" \
   -F "upload_phase=start" \
   -F "access_token=$TOKEN" \
 )
@@ -57,10 +57,10 @@ echo ""
 echo "Uploaded"
 
 curl -X POST \
-  "https://graph.facebook.com/v19.0/$OWNER_ID/video_reels" \
+  "https://graph.facebook.com/v19.0/$PAGE_ID/video_reels" \
   -F "upload_phase=finish" \
   -F "video_state=DRAFT" \
   -F "allow_video_remixing=false" \
   -F "video_id=$VIDEO_ID" \
   -F "access_token=$TOKEN" \
-  -F "description=What a great day. Watch until the end!"
+  -F "description=YOUR_REELS_DESCRIPTION"
