@@ -1,11 +1,11 @@
 #!/bin/bash
 
-while getopts t:o:h:v: flag
+while getopts t:p:i: flag
 do
     case "${flag}" in
         t) TOKEN=${OPTARG};;
-        o) PAGE_ID=${OPTARG};;
-        h) AB_TEST_ID=${OPTARG};;
+        p) PAGE_ID=${OPTARG};;
+        i) AB_TEST_ID=${OPTARG};;
     esac
 done
 
@@ -21,7 +21,7 @@ fi
 if ([ -z "$PAGE_ID" ]);
 then
     usage;
-
+fi
 if ([ -z "$AB_TEST_ID" ]);
 then
     usage;
@@ -33,6 +33,4 @@ echo "ab test id: $AB_TEST_ID"
 
 
 
-curl -i -X GET \
- "https://graph.facebook.com/v18.0/2141223899587789?access_token="
-curl -i -X GET "https://graph.facebook.com/$AB_TEST_ID"
+curl  -X GET "https://graph.facebook.com/v18.0/$AB_TEST_ID?access_token=$TOKEN" | jq '.'
