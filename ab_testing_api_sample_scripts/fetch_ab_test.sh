@@ -10,7 +10,7 @@ do
 done
 
 usage () {
-    echo "Usage: upload.sh -t <api_token> -o <owner_id/page_id> -h <graph.devXXX...facebook.com> -v1 <video_id_1> -v2 <video_id_1>";
+    echo "Usage: fetch_ab_test.sh -t <api_token> -p <page_id> -i <ab_test_id>";
     exit 1;
 }
 

@@ -14,7 +14,7 @@ do
 done
 
 usage () {
-    echo "Usage: upload.sh -t <api_token> -p <page_id> -g <optimization_goal> -v1 <video_id_1> -v2 <video_id_1>";
+    echo "Usage: create_ab_test.sh -t <api_token> -p <page_id> -g <optimization_goal> -v1 <video_id_1> -v2 <video_id_1>";
     exit 1;
 }
 
