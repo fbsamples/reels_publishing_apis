@@ -17,7 +17,7 @@ You will need the following:
 * create a page token using the fb reels publishing api sample or [graph explorer tool](https://developers.facebook.com/tools/explorer/)
 
 * Run ./upload_reel.sh to create two new draft reel videos
-    * Eg: upload.sh -t <api_access_token> -o <owner_id/page_id>  -v <video_file_path>
+    * Eg: upload_reel.sh -t <api_access_token> -p <page_id>  -v <video_file_path>
 
 * Run ./create_ab_test.sh to create a new ab test using the two previously created draft videos
     * Eg: create_ab_test.sh -t <api_access_token> -p <page_id> -g <optimization_goal> -1 <video_id_1> -2 <video_id_1>
