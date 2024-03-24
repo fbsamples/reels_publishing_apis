@@ -25,6 +25,9 @@ const SCOPES = [
     "pages_read_engagement",
     "pages_show_list",
     "pages_manage_posts",
+    "pages_manage_engagement", // needed for ab tests creation
+    "pages_read_user_content" // needed for ab tests creation
+
 ];
 const STRINGIFIED_SCOPES = SCOPES.join("%2c");
 let PRODUCT = "reels";
