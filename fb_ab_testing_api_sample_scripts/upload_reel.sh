@@ -1,6 +1,6 @@
 #!/bin/bash
 
-while getopts t:o:h:v: flag
+while getopts t:p:v: flag
 do
     case "${flag}" in
         t) TOKEN=${OPTARG};;
@@ -18,7 +18,7 @@ if ([ -z "$TOKEN" ]);
 then
     usage;
 fi
-if ([ -z "$OWNPAGE_IDER_ID" ]);
+if ([ -z "$PAGE_ID" ]);
 then
     usage;
 fi
