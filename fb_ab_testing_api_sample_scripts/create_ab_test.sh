@@ -1,6 +1,9 @@
 #!/bin/bash
 
-
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+# All rights reserved.
+# This source code is licensed under the license found in the
+# LICENSE file in the root directory of this source tree.
 
 while getopts t:p:g:1:2: flag
 do
