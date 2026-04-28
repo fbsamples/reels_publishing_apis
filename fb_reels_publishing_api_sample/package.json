@@ -10,7 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.30.3",
+    "axios": "^0.31.0",
     "directory-tree": "^3.2.2",
     "dotenv": "^16.0.1",
     "express": "^4.17.3",
