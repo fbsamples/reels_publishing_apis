@@ -26,7 +26,7 @@ const isUploadSuccessful = async(retryCount, checkStatusUri) => {
         const response = await axios.get(checkStatusUri);
         if(response.data.status_code != "FINISHED") {
             await _wait(3000);
-            await isUploadSuccessful(retryCount+1, checkStatusUri);
+            return await isUploadSuccessful(retryCount+1, checkStatusUri);
         }
         return true;
     } catch(e) {
