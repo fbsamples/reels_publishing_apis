@@ -53,7 +53,6 @@ const SCOPES = [
     "instagram_content_publish"
 ];
 const STRINGIFIED_SCOPES = SCOPES.join("%2c");
-let PRODUCT = "REELS";
 
 app.use(express.static(path.join(__dirname, "./")));
 app.set("views", path.join(__dirname, "./"));
@@ -221,11 +220,9 @@ app.post("/uploadReels", async function (req, res) {
     if(typeof locationId === 'undefined') {
         locationId = "";
     }
-    if(isStories !== undefined) {
-        PRODUCT = "STORIES";
-    } 
+    const product = isStories !== undefined ? "STORIES" : "REELS";
     const uploadVideoUri = buildGraphAPIURL(`${accountId}/media`, {
-        media_type: PRODUCT,
+        media_type: product,
         video_url: videoUrl,
         caption,
         cover_url: coverUrl,
@@ -246,7 +243,7 @@ app.post("/uploadReels", async function (req, res) {
             uploaded: true,
             accountId,
             containerId,
-            message: `${PRODUCT.toLowerCase()} uploaded successfully on IG UserID #${accountId} at Container ID #${containerId}. You can Publish now.`
+            message: `${product.toLowerCase()} uploaded successfully on IG UserID #${accountId} at Container ID #${containerId}. You can Publish now.`
         });
     } catch(e) {
         res.render("upload_page", {
