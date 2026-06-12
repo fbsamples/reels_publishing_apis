@@ -300,7 +300,7 @@ app.post("/publishReels", async function (req, res) {
         res.render("upload_page", {
             uploaded: false,
             error: true,
-            message: "Reel Upload Failed for IG UserID #${igUserId} !"
+            message: `Reel Upload Failed for IG UserID #${accountId} !`
         });
     }
 });
