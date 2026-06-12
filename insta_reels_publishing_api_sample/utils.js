@@ -21,17 +21,13 @@ function _wait(n) { return new Promise(resolve => setTimeout(resolve, n)); }
  * @returns Promise<boolean>
  */
 const isUploadSuccessful = async(retryCount, checkStatusUri) => {
-    try {
-        if (retryCount > 30) return false;
-        const response = await axios.get(checkStatusUri);
-        if(response.data.status_code != "FINISHED") {
-            await _wait(3000);
-            await isUploadSuccessful(retryCount+1, checkStatusUri);
-        }
-        return true;
-    } catch(e) {
-        throw e;
+    if (retryCount > 30) return false;
+    const response = await axios.get(checkStatusUri);
+    if(response.data.status_code != "FINISHED") {
+        await _wait(3000);
+        return await isUploadSuccessful(retryCount+1, checkStatusUri);
     }
+    return true;
 }
 module.exports = {
     isUploadSuccessful
