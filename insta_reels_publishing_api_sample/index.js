@@ -14,9 +14,31 @@ const https = require("https");
 const path = require("path");
 const fs = require("fs");
 const { isUploadSuccessful } = require("./utils");
+const multer = require("multer");
 const { URLSearchParams } = require("url");
 
 const DEFAULT_GRAPH_API_ORIGIN = 'https://graph.facebook.com';
+
+const storageDestinationAtRoot = "local/store/videos";
+const uploadSizeLimit = 1000000000; // 1GB per IG Reels spec
+
+const videoUpload = multer({
+    storage: multer.diskStorage({
+        destination: storageDestinationAtRoot,
+        filename: (req, file, cb) => {
+            cb(null, file.fieldname + "_" + Date.now() + path.extname(file.originalname));
+        },
+    }),
+    limits: {
+        fileSize: uploadSizeLimit,
+    },
+    fileFilter(req, file, cb) {
+        if (!file.originalname.match(/\.(3g2|3gp|3gpp|asf|avi|dat|divx|dv|f4v|flv|m2ts|m4v|mkv|mod|mov|mp4|mpe|mpeg|mpeg4|mpg|mts|nsv|ogm|ogv|qt|tod|ts|vob|wmv)$/i)) {
+            return cb(new Error("Please upload a video in a supported format"));
+        }
+        cb(undefined, true);
+    },
+});
 const DEFAULT_GRAPH_API_VERSION = '';
 
 // Read variables from environment
@@ -214,44 +236,143 @@ app.get("/listLocations", async function (req, res) {
     }
 });
 
-app.post("/uploadReels", async function (req, res) {
-    const { videoUrl, caption, coverUrl, thumbOffset, accountId } = req.body;
-    let { locationId, isStories } = req.body;
-    if(typeof locationId === 'undefined') {
-        locationId = "";
-    }
-    const product = isStories !== undefined ? "STORIES" : "REELS";
-    const uploadVideoUri = buildGraphAPIURL(`${accountId}/media`, {
-        media_type: product,
-        video_url: videoUrl,
-        caption,
-        cover_url: coverUrl,
-        thumb_offset: thumbOffset,
-        location_id: locationId,
-    }, req.session.userToken);
-    
-    try {
-        // Upload Reel Video
-        const uploadResponse = await axios.post(uploadVideoUri);
-        const containerId = uploadResponse.data.id;
+app.post("/uploadReels", function (req, res) {
+    const uploadSingleVideo = videoUpload.single("videoFile");
+    uploadSingleVideo(req, res, async function (err) {
+        const { caption, coverUrl, thumbOffset, accountId } = req.body;
+        let { locationId, isStories } = req.body;
+        const videoUrl = req.body.videoUrl;
+        const videoFile = req.file;
 
-        // add variables to the session
-        Object.assign(req.session, { accountId, containerId });
+        if (typeof locationId === 'undefined') {
+            locationId = "";
+        }
 
-        // Render Upload Success
-        res.render("upload_page", {
-            uploaded: true,
-            accountId,
-            containerId,
-            message: `${product.toLowerCase()} uploaded successfully on IG UserID #${accountId} at Container ID #${containerId}. You can Publish now.`
-        });
-    } catch(e) {
-        res.render("upload_page", {
-            uploaded: false,
-            error: true,
-            message: `Error during upload. [Selected account id - ${accountId}]: ${e.response.data.error}`,
-        });
-    }
+        if (videoUrl && videoFile) {
+            res.render("upload_page", {
+                uploaded: false,
+                error: true,
+                accounts: req.session.instagramData,
+                message: "Please provide either a video file or a video URL, not both.",
+            });
+            return;
+        }
+
+        if (!accountId) {
+            res.render("upload_page", {
+                uploaded: false,
+                error: true,
+                accounts: req.session.instagramData,
+                message: "No account has been selected.",
+            });
+            return;
+        }
+
+        if (err) {
+            res.render("upload_page", {
+                uploaded: false,
+                error: true,
+                accounts: req.session.instagramData,
+                message: `File upload error: ${err.message}`,
+            });
+            return;
+        }
+
+        if (!videoFile && !videoUrl) {
+            res.render("upload_page", {
+                uploaded: false,
+                error: true,
+                accounts: req.session.instagramData,
+                message: "Please provide a video file or a video URL.",
+            });
+            return;
+        }
+
+        const product = isStories !== undefined ? "STORIES" : "REELS";
+
+        try {
+            let containerId;
+
+            if (videoFile) {
+                // Resumable upload path: create container, then upload binary
+                const createContainerUri = buildGraphAPIURL(`${accountId}/media`, {
+                    media_type: product,
+                    upload_type: 'resumable',
+                    caption,
+                    cover_url: coverUrl,
+                    thumb_offset: thumbOffset,
+                    location_id: locationId,
+                }, req.session.userToken);
+
+                const containerResponse = await axios.post(createContainerUri);
+                containerId = containerResponse.data.id;
+                const uploadUri = containerResponse.data.uri;
+
+                const filePath = path.join(__dirname, videoFile.path);
+                const fileData = fs.readFileSync(filePath);
+                const fileSize = videoFile.size;
+
+                Object.assign(req.session, { accountId, containerId });
+
+                // Respond immediately so the UI can show upload progress
+                res.render("upload_page", {
+                    uploaded: true,
+                    accountId,
+                    containerId,
+                    message: `${product.toLowerCase()} container created on IG UserID #${accountId} at Container ID #${containerId}. Uploading video...`,
+                });
+
+                // Upload binary in the background — status is tracked via /asyncStatus
+                axios({
+                    method: 'post',
+                    url: uploadUri,
+                    data: fileData,
+                    maxBodyLength: Infinity,
+                    headers: {
+                        'Authorization': `OAuth ${req.session.userToken}`,
+                        'offset': 0,
+                        'file_size': fileSize,
+                    },
+                }).then(() => {
+                    fs.unlinkSync(filePath);
+                }).catch(() => {
+                    fs.unlink(filePath, () => {});
+                });
+
+                return;
+            } else {
+                // URL-based upload path: create container with video_url
+                const uploadVideoUri = buildGraphAPIURL(`${accountId}/media`, {
+                    media_type: product,
+                    video_url: videoUrl,
+                    caption,
+                    cover_url: coverUrl,
+                    thumb_offset: thumbOffset,
+                    location_id: locationId,
+                }, req.session.userToken);
+
+                const uploadResponse = await axios.post(uploadVideoUri);
+                containerId = uploadResponse.data.id;
+            }
+
+            Object.assign(req.session, { accountId, containerId });
+
+            res.render("upload_page", {
+                uploaded: true,
+                accountId,
+                containerId,
+                message: `${product.toLowerCase()} uploaded successfully on IG UserID #${accountId} at Container ID #${containerId}. You can Publish now.`,
+            });
+        } catch (e) {
+            const errorDetail = e.response?.data?.error || e.message || e;
+            res.render("upload_page", {
+                uploaded: false,
+                error: true,
+                accounts: req.session.instagramData,
+                message: `Error during upload. [Selected account id - ${accountId}]: ${errorDetail}`,
+            });
+        }
+    });
 });
 
 app.post("/publishReels", async function (req, res) {
@@ -302,6 +423,21 @@ app.post("/publishReels", async function (req, res) {
             error: true,
             message: `Reel Upload Failed for IG UserID #${accountId} !`
         });
+    }
+});
+
+app.get('/asyncStatus', async function (req, res) {
+    const { containerId } = req.session;
+    const checkStatusUri = buildGraphAPIURL(`${containerId}`, {
+        fields: 'id,status,status_code,video_status',
+    }, req.session.userToken);
+
+    try {
+        const statusResponse = await axios.get(checkStatusUri);
+        res.send(statusResponse.data);
+    } catch (error) {
+        const errorDetail = error.response?.data?.error || error.message || 'Unknown error';
+        res.send({ status_code: 'ERROR', status: `API error: ${JSON.stringify(errorDetail)}`, container_id: containerId });
     }
 });
 
