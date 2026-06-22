@@ -56,6 +56,14 @@ Custom Thumbnail support has been included in the sample app as of version 2.0.0
 ### Cover URL `cover_url`
 Cover URL support has been included in the sample app as of version 2.0.0. This is the path to an image to use as the cover image for the Reels tab. The image specified will be cURLed hence the image must be on a public server. If both `cover_url` and `thumb_offset` are specified, `cover_url` is used and `thumb_offset` will be ignored. The image must conform to the specifications for a [Reels cover photo](https://developers.facebook.com/docs/instagram-api/reference/ig-user/media#reels-specs).
 
+### Resumable Upload (File Upload) `upload_type=resumable`
+Resumable upload support has been included in the sample app as of version 3.0.0. Instead of providing a video URL for Instagram to fetch, you can upload a local video file directly from your computer. The app uses the [Resumable Upload Protocol](https://developers.facebook.com/docs/instagram-api/guides/content-publishing) to:
+1. Create a media container with `upload_type=resumable`, which returns a container ID and an upload URI
+2. Upload the video binary to the returned upload URI at `rupload.facebook.com`
+3. Poll for upload completion and publish as usual
+
+You can use either a video URL **or** a file upload, but not both simultaneously. The maximum file size is 1GB per the Instagram Reels specification. Supported video formats include MP4, MOV, MKV, AVI, and others listed in the [Reels Requirements for Publishing](#reels-requirements-for-publishing) section above.
+
 ### Location Tagging `location_id`
 Location Tagging feature has been included in the sample app as of version 2.0.0. The [`location_id` parameter](https://developers.facebook.com/docs/instagram-api/reference/ig-user/media#query-string-parameters) refers to the ID of a Page associated with a location that you want to tag the reel with. Ensure to refer to pre-requisites required to search for Pages in the [Before you start](#before-you-start) section of this README.
 

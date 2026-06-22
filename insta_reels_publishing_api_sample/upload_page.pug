@@ -14,7 +14,7 @@ html
         .canvas
             - let accountsArr = accounts ?? [];
             if (accountsArr.length > 0)
-                form(action='/uploadReels' name="uploadForm" id="uploadForm" method='POST')
+                form(action='/uploadReels' name="uploadForm" id="uploadForm" method='POST' enctype="multipart/form-data")
                     b Select an Instagram Professional Account to publish reel to
                     div(class='radio-group')
                         each account, index in accountsArr
@@ -25,6 +25,10 @@ html
                     div(class='checkbox-group')
                         input(type="checkbox" id="isStories" placeholder="Upload as Stories" name="isStories")
                         label(for="isStories") Make the request for Stories
+                    br
+                    input(id='file-upload' type='file' name='videoFile' accept='video/*')
+                    br
+                    b or
                     br
                     input(type="text" placeholder="Enter video url" name="videoUrl")
                     input(type="text" placeholder="Enter caption (optional)" name="caption")
@@ -71,8 +75,17 @@ html
                     .alert
                         span.closebtn(onclick="this.parentElement.style.display='none';") &times;
                         |   #{message}
+                    div(class="progress" id="progress")
+                        strong(id="upload-status") Upload Status: checking...
+                        |
+                        span(id="loading-indicator" style="display:inline") &#8987;
+                    div(id="status-error" style="display:none;margin:10px;padding:10px;background-color:#a51414;color:white")
+                    details(style="margin:10px;text-align:left")
+                        summary(style="cursor:pointer;text-align:center") Show API Response
+                        pre(id="raw-response" style="background:#f4f4f4;padding:10px;overflow-x:auto;font-size:12px;max-height:300px") Waiting for first poll...
+                    script(src="asyncStatusRefresh.js")
                     form(method='POST', action='/publishReels')
-                        input(type='submit', name='publishReels', value='Publish', onclick="this.form.submit(); this.disabled = true;")
+                        input(id='publish-button' type='submit', name='publishReels', value='Waiting for upload to finish...', disabled=true, onclick="this.form.submit(); this.disabled = true;")
                 if(published)
                     if(message.length > 0)
                         each msg in message
